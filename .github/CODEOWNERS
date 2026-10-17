@@ -1,0 +1,28 @@
+# High-risk paths. With branch protection's "Require review from Code Owners"
+# switched on, changes here cannot merge without the maintainer's approval.
+# See AGENTS.md and REVIEW.md.
+
+# Encryption and at-rest protection
+/src/lib/crypto.ts            @Ledgerjack
+/src/lib/atRest.ts            @Ledgerjack
+/src/lib/migrateAtRest.ts     @Ledgerjack
+
+# Ledger write and read choke-points
+/src/lib/ledger.ts            @Ledgerjack
+/src/lib/db.ts                @Ledgerjack
+
+# Backups
+/src/lib/backup.ts            @Ledgerjack
+/src/lib/cloudbackup/         @Ledgerjack
+
+# Tax-authority integration
+/src/lib/mtd/                 @Ledgerjack
+/src/lib/vat/                 @Ledgerjack
+/supabase/                    @Ledgerjack
+
+# Build, CI, dependencies and project rules
+/.github/                     @Ledgerjack
+/package.json                 @Ledgerjack
+/package-lock.json            @Ledgerjack
+/AGENTS.md                    @Ledgerjack
+/REVIEW.md                    @Ledgerjack
