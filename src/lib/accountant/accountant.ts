@@ -12,6 +12,9 @@ import { getApprovedTransactions } from "../ledger";
 import { formatCurrency } from "../currency";
 import { computeSA103 } from "../statements/sa103";
 import type { TaxRegion } from "../regions";
+import { loadBooksCheck } from "../bookscheck/load";
+import { checksNoteLines } from "../bookscheck/bookscheck";
+import { localToday } from "../bookscheck/entries";
 
 export async function setAccountantFlag(txId: string, flagged: boolean): Promise<void> {
   const tx = await db.transactions.get(txId);
@@ -71,6 +74,17 @@ export async function buildAccountantNote(
     }
   }
   lines.push("");
+
+  // Results of the on-device books check, so the accountant gets books that
+  // have already been looked over. Best-effort: the note still goes without it.
+  if (range) {
+    try {
+      const report = await loadBooksCheck(range.from, range.to, localToday());
+      lines.push(...checksNoteLines(report, (c) => formatCurrency(c, region)));
+      lines.push("");
+    } catch { /* skip the checks section if it can't be computed */ }
+  }
+
   lines.push("A full transactions CSV and a provisional SA103 + statements CSV are attached separately from LedgerJack.");
   return lines.join("\n");
 }

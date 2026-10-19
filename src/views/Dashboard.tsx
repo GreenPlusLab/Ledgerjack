@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TrendingUp, TrendingDown, FileText, Clock, ArrowUpRight, ArrowDownRight, Flame, BarChart2, Lightbulb } from 'lucide-react';
+import { TrendingUp, TrendingDown, FileText, Clock, ArrowUpRight, ArrowDownRight, Flame, BarChart2, Lightbulb, Search } from 'lucide-react';
 import { db, loadWithSplits, type TransactionWithSplits } from '../lib/db';
 import { useApp } from '../contexts/AppContext';
 import { formatCurrency } from '../lib/currency';
@@ -237,6 +237,20 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           <div>
             <h3 className="font-bold text-slate-900">Insights</h3>
             <p className="text-xs text-slate-500">Understand your numbers in plain English</p>
+          </div>
+        </div>
+        <span className="text-ink-soft text-xl leading-none">›</span>
+      </button>
+
+      <button
+        onClick={() => onNavigate('books-check')}
+        className="w-full bg-white rounded-xl border-2 border-brand-200 p-4 flex items-center justify-between text-left"
+      >
+        <div className="flex items-center gap-2">
+          <Search className="w-5 h-5 text-brand-600" />
+          <div>
+            <h3 className="font-bold text-slate-900">Check my books</h3>
+            <p className="text-xs text-slate-500">Spot duplicates, typos and gaps before year end</p>
           </div>
         </div>
         <span className="text-ink-soft text-xl leading-none">›</span>

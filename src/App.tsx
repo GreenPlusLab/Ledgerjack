@@ -24,6 +24,7 @@ import ManualFaq from './views/ManualFaq';
 import JobEstimator from './views/JobEstimator';
 import TaxPotView from './views/TaxPot';
 import HealthCheck from './views/HealthCheck';
+import BooksCheck from './views/BooksCheck';
 import ProvisionalFigures from './views/ProvisionalFigures';
 import ReportProblem from './views/ReportProblem';
 import Insights from './views/Insights';
@@ -173,6 +174,7 @@ function AppContent() {
           {currentView === 'provisional'     && <ProvisionalFigures onBack={() => setCurrentView('settings')} />}
           {currentView === 'report'          && <ReportProblem onBack={() => setCurrentView('settings')} onNavigate={(v) => setCurrentView(v as View)} />}
           {currentView === 'insights'        && <Insights onBack={() => setCurrentView('dashboard')} />}
+          {currentView === 'books-check'     && <BooksCheck onBack={() => setCurrentView('dashboard')} onNavigate={(v) => setCurrentView(v as View)} />}
           {currentView === 'statements'      && <Statements onBack={() => setCurrentView('settings')} />}
           {currentView === 'rules'           && <RulesManager onBack={() => setCurrentView('settings')} />}
           {currentView === 'recurring'       && <RecurringManager onBack={() => setCurrentView('settings')} />}
