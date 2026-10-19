@@ -38,6 +38,7 @@ export type View =
   | 'job-estimator'
   | 'tax-pot'
   | 'health'
+  | 'books-check'
   | 'provisional'
   | 'report';
 

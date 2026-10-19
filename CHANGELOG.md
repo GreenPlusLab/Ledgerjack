@@ -6,6 +6,18 @@ are marked **[security]**. This project follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- **Check my books** screen (Dashboard): looks through this tax year's entries
+  for possible duplicates (including a scanned receipt and the same bank line),
+  unusual amounts (a misplaced decimal point or an extra zero), dates in the
+  future, entries waiting for review, expenses without a receipt and months
+  with nothing recorded. Runs on the device with no AI, never changes an entry
+  on its own, and lets the user send an entry back to the review queue to
+  correct or delete it. The results are added to the accountant note.
+- Insights: **What changed**, a plain comparison of the last two complete
+  months by category, and **Ask your books**, a no-AI question builder
+  ("how much did I spend on Travel this tax year?"). Both are worked out on the
+  device. `parseBooksQuery()` is the gate any future AI layer must go through:
+  the AI may only propose a query, never see entries or do arithmetic.
 - Unit test suite (Vitest) in `tests/`, run with `npm test`, covering the
   money/tax/date logic, the problem-report privacy guarantee, AI review-gating,
   and backup KDF backward compatibility.

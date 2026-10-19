@@ -12,6 +12,11 @@ import { computeMetrics, type FinancialMetrics } from "../lib/insights/metrics";
 import { generateInsight, askFollowUp } from "../lib/ai/insightService";
 import { modelsForRole, getSelectedModel } from "../lib/ai/aiModels";
 import DeadlineCalendar from "../components/DeadlineCalendar";
+import WhatChanged from "../components/WhatChanged";
+import AskYourBooks from "../components/AskYourBooks";
+import { loadEntries } from "../lib/bookscheck/load";
+import { localToday, type Entry } from "../lib/bookscheck/entries";
+import { formatCurrency } from "../lib/currency";
 
 function fiscalYearWindow(startMonth: number, startDay: number, now = new Date()) {
   const m0 = startMonth - 1;
@@ -36,11 +41,16 @@ export default function Insights({ onBack }: { onBack: () => void }) {
   const [chat, setChat] = useState<{ q: string; a: string }[]>([]);
   const [question, setQuestion] = useState("");
   const [asking, setAsking] = useState(false);
+  const [entries, setEntries] = useState<Entry[] | null>(null);
+  const today = localToday();
+  const cents = (c: number) => formatCurrency(c, region);
+  const yearWord = region === "uk" ? "tax year" : "financial year";
 
   const win = fiscalYearWindow(cfg.fiscalYearStart.month, cfg.fiscalYearStart.day);
 
   useEffect(() => {
     computeMetrics(win.from, win.to).then(setMetrics);
+    loadEntries().then(setEntries).catch(() => setEntries([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -139,6 +149,10 @@ export default function Insights({ onBack }: { onBack: () => void }) {
               ))}
             </div>
           )}
+
+          {/* Plain comparisons and questions: worked out on the device, no AI */}
+          {entries && <WhatChanged entries={entries} today={today} money={cents} />}
+          {entries && <AskYourBooks entries={entries} today={today} fy={cfg.fiscalYearStart} money={cents} yearWord={yearWord} />}
 
           {/* AI explanation (opt-in) */}
           <div className="bg-white rounded-xl border-2 border-brand-200 p-4 space-y-3">
