@@ -1,0 +1,11 @@
+# Keeps the pinned GitHub Actions above up to date. Each update arrives as a
+# pull request, and the CI checks must pass before it is merged.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      actions:
+        patterns: ["*"]
