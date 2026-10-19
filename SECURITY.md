@@ -4,14 +4,22 @@
 
 Please report security issues **privately**, not via public GitHub issues.
 
-The preferred route is GitHub's private vulnerability reporting: go to the
-**Security** tab of the repository and choose **"Report a vulnerability"**. This
-opens a private advisory visible only to the maintainers — no email address or
-account with us is needed.
+The preferred route is GitHub's private vulnerability reporting:
+**https://github.com/Ledgerjack/Ledgerjack/security/advisories/new**
+(or the **Security** tab of the repository, then **"Report a vulnerability"**).
+This opens a private advisory visible only to the maintainers. No email address
+or separate account with us is needed.
 
-We aim to acknowledge reports within a few days and will credit responsible
-disclosure. Please give us reasonable time to fix an issue before disclosing it
-publicly.
+What to expect:
+
+- We acknowledge a report within **7 days**.
+- We confirm whether it is a vulnerability, and how serious, within **14 days**.
+- We aim to release a fix within **90 days** of the report, sooner for serious
+  issues, and will keep you updated along the way.
+- We credit responsible disclosure in the advisory and the changelog, unless you
+  ask us not to.
+
+Please give us that time to fix an issue before disclosing it publicly.
 
 ## Security model
 
@@ -41,9 +49,12 @@ publicly.
   encrypted-file option is the always-works fallback.
 - **Lost recovery key / backup passphrase = unrecoverable data.** This is
   inherent to real end-to-end encryption; the UI states it clearly.
-- **Transactions are not individually encrypted at rest** in IndexedDB (only
-  attachments, certain settings, and exports are). Treat device access as the
-  trust boundary; use device-level encryption too.
+- **Not every field is encrypted at rest.** Transaction descriptions and
+  amounts, attachments, certain settings and exports are encrypted in IndexedDB;
+  dates, categories and account names are not. Entries saved while no vault key
+  is loaded stay plaintext until "Encrypt older records" is run (the Health
+  check reports this). Treat device access as the trust boundary; use
+  device-level encryption too.
 - **Not independently audited yet.** An external review is recommended before
   handling real users' tax data at scale.
 - **External facts to verify** before production: HMRC MTD/VAT endpoint versions,
