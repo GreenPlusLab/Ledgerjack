@@ -145,4 +145,4 @@ export function formatDiagnostics(d: Diagnostics, userNote?: string): string {
 }
 
 /** The public repo where issues are filed. */
-export const ISSUES_URL = "https://github.com/Ledgerjack/ledgerjack/issues/new";
+export const ISSUES_URL = "https://github.com/GreenPlusLab/Ledgerjack/issues/new";

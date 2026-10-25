@@ -5,7 +5,7 @@
 Please report security issues **privately**, not via public GitHub issues.
 
 The preferred route is GitHub's private vulnerability reporting:
-**https://github.com/Ledgerjack/Ledgerjack/security/advisories/new**
+**https://github.com/GreenPlusLab/Ledgerjack/security/advisories/new**
 (or the **Security** tab of the repository, then **"Report a vulnerability"**).
 This opens a private advisory visible only to the maintainers. No email address
 or separate account with us is needed.
