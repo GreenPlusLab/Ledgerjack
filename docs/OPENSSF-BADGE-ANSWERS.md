@@ -4,7 +4,7 @@ This maps each **passing**-level criterion to LedgerJack's answer and the eviden
 to link in the form at <https://www.bestpractices.dev>. Fill the web form from
 this; the site auto-detects many answers from the GitHub repo.
 
-Replace `REPO` with the canonical repo URL: `https://github.com/Ledgerjack/ledgerjack`.
+Replace `REPO` with the canonical repo URL: `https://github.com/GreenPlusLab/Ledgerjack`.
 
 Legend: **Met** / **N/A** / **Unmet (planned)**. Criterion IDs in brackets match
 the badge form.
