@@ -6,13 +6,8 @@ easiest first.
 
 ## Option A — StackBlitz (real app, in your browser, no install) ✅ recommended
 StackBlitz builds and runs the real Vite app entirely inside a browser tab.
-1. Put the project on GitHub (free):
-   - Create a free account at github.com.
-   - Make a new repository (e.g. "ledgerjack").
-   - Upload the unzipped project files (GitHub's website has "Add file → Upload
-     files"; you can drag the whole folder's contents in).
-2. Open it in StackBlitz: go to `https://stackblitz.com/github/YOURNAME/ledgerjack`
-   (replace with your username/repo).
+1. The project is already on GitHub at `https://github.com/GreenPlusLab/Ledgerjack`.
+2. Open it in StackBlitz: go to `https://stackblitz.com/github/GreenPlusLab/Ledgerjack`.
 3. StackBlitz runs `npm install` and starts the dev server automatically. The real
    app appears in the preview pane. This is the genuine app, not a mock-up.
 

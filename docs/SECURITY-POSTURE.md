@@ -66,7 +66,7 @@ A separate weekly workflow (`.github/workflows/audit.yml`) runs `npm audit` for 
 - **Input validation:** backup import performs typed schema validation before touching the database (each transaction, split, and account is checked; the crypto-envelope import is constrained to a single expected record). This closes a previously-noted unsafe-cast import path.
 - **Cross-site scripting:** no `dangerouslySetInnerHTML`, `eval`, or `new Function` in application code. The invoice/statement print path builds HTML but **escapes all user-supplied fields** (`&`, `<`, `>`), including multi-line address fields (escaped before newline conversion). The only `innerHTML` use is a static fallback template with no user data.
 - **Transport:** all external endpoints are HTTPS. HMRC endpoints are TLS-only by requirement.
-- **Vulnerability disclosure:** a `SECURITY.md` exists with a private reporting process. *(The contact email is still a placeholder — see §7.)*
+- **Vulnerability disclosure:** a `SECURITY.md` exists with a private reporting process through GitHub's private vulnerability reporting, so no email address is needed.
 
 ---
 
@@ -96,7 +96,7 @@ These are stated plainly. None make the app "insecure" for its current local-fir
 
 7. **Password KDF choice.** PBKDF2 at 600k iterations is OWASP-compliant and acceptable. Argon2id is the modern preference for memory-hardness; migrating is optional future hardening, not a defect.
 
-8. **Housekeeping before publication:** replace placeholder security/conduct contact emails *(still outstanding)*. Dependency vulnerability scanning is now in place (weekly `npm audit` + Dependabot — done). The OpenSSF Best Practices badge has been earned at the passing level (#13674 — done) and is displayed on the project README.
+8. **Housekeeping before publication:** placeholder security/conduct contact emails replaced *(done: security reports use GitHub private reporting; conduct and support use the project contact address)*. Dependency vulnerability scanning is now in place (weekly `npm audit` + Dependabot — done). The OpenSSF Best Practices badge has been earned at the passing level (#13674 — done) and is displayed on the project README.
 
 ---
 

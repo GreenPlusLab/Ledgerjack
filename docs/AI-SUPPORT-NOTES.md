@@ -21,8 +21,8 @@ Settings -> "Help & support ›".
 - Never receives the user's ledger/financial data — only their typed question.
 - Runs on the user's own key, on the cheap recommended model (GPT-4o mini), and
   logs token usage so it shows in the AI cost tracker.
-- Human fallback: "Report a problem" opens an email to SUPPORT_EMAIL (change the
-  placeholder in Support.tsx to your real address).
+- Human fallback: "Report a problem" opens an email to SUPPORT_EMAIL in
+  Support.tsx (the project contact address).
 
 ## Notes
 - Keeps only the last few turns of context to control cost.
