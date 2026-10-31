@@ -43,10 +43,13 @@ it and how blocking it is.
 
 ## D. Owner decisions / fill-ins
 
-- [ ] **Licence**: MIT (default) vs AGPL-3.0 — see LICENSE-DECISION.md. Fill in
-      the copyright holder in `LICENSE`.
-- [ ] **Contacts**: real `security@`, `conduct@`, and `support@` addresses
-      (placeholders in SECURITY.md / CODE_OF_CONDUCT.md / support code).
+- [x] **Licence**: AGPL-3.0-or-later chosen and full text in `LICENSE`
+      (see LICENSE-DECISION.md).
+- [ ] **Copyright notice**: decide the name to show as copyright holder.
+- [x] **Contacts**: security reports go through GitHub private reporting
+      (SECURITY.md); conduct and support use the project contact address.
+- [ ] **Web address**: replace `ledgerjack.app` (HMRC redirect, AI referer,
+      server allow-lists) with the project's real domain.
 - [ ] **Supporter tier**: paste your own payment links in `src/lib/supportConfig.ts`.
 - [ ] **Business/brand**: confirm the motto and app name usage.
 

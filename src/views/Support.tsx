@@ -9,7 +9,7 @@ import { useApp } from "../contexts/AppContext";
 import { askSupport, type SupportTurn } from "../lib/ai/supportService";
 
 // Change this to your real support address.
-const SUPPORT_EMAIL = "support@ledgerjack.app";
+const SUPPORT_EMAIL = "ledgerjack.project@yahoo.com";
 
 export default function Support({ onBack }: { onBack: () => void }) {
   const { apiKey } = useApp();

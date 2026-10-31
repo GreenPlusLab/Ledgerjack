@@ -8,7 +8,7 @@ We want LedgerJack to be a welcoming, respectful project for everyone.
 - Respect privacy — this is a privacy project; don't share others' data.
 
 Maintainers may remove comments, commits, or contributors that violate this code.
-To report a concern, contact the maintainers privately at
-`conduct@ledgerjack.app` (replace with your real contact before launch).
+To report a concern, email the maintainers privately at
+ledgerjack.project@yahoo.com. Reports are kept confidential.
 
 Adapted in spirit from the Contributor Covenant.
