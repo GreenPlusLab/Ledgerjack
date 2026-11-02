@@ -28,6 +28,20 @@ it and how blocking it is.
 - [ ] **2026/27 tax-rate tables** (personal allowance + taper, band widths,
       Class 2/4 NI) in `src/lib/tax/`.
 - [ ] Sandbox-test MTD and VAT submissions end-to-end before enabling production.
+- [ ] **Rule 4 conflict:** `src/lib/tax/ukTaxRates.ts` holds built-in rates and
+      allowances (personal allowance, basic rate, Class 4 NI), which AGENTS.md
+      rule 4 says the app never asserts. Decide: remove the estimator, or have
+      the user enter the figures, or change rule 4 with sources and yearly checks.
+- [ ] **Autumn Budget 2026** (28 October 2026; check each on GOV.UK):
+      trading allowance and the Self Assessment reporting threshold rise from
+      £1,000 to £3,000 from 6 April 2027; savings and property income rates
+      change from 6 April 2027; payments on account become smaller, more
+      regular payments from April 2029; reported easing of late-filing
+      penalties for the first four quarterly updates for people joining MTD in
+      April 2027. Update help text and the planning calendar where affected.
+- [ ] **HMRC software provider registration and standards** announced in the
+      Budget: respond to the consultation (intermediation roadmap, spring 2027)
+      as a free, open-source provider.
 
 ## C. Real-device / manual testing (couldn't be done in the build env)
 
@@ -52,6 +66,16 @@ it and how blocking it is.
       server allow-lists) with the project's real domain.
 - [ ] **Supporter tier**: paste your own payment links in `src/lib/supportConfig.ts`.
 - [ ] **Business/brand**: confirm the motto and app name usage.
+- [ ] **Privacy policy and website**: explain, for each choice in
+      docs/PRIVACY-CHOICES.md, where data goes, including AI companies and any
+      data going abroad, with the date each company's terms were checked.
+- [ ] **Insurance**: professional indemnity (technology errors and omissions)
+      from launch. Check it covers free, open-source and tax-related software,
+      and whether it covers an individual or needs a company/CIC.
+- [ ] **Competitor comparisons**: check and date any claim about other apps
+      before it goes on the website or in marketing.
+- [ ] **"Coming soon" labels**: keep only features with a real plan (see
+      docs/PRIVACY-CHOICES.md section 7).
 
 ## E. Known limitations to communicate to users (already surfaced in-app)
 
