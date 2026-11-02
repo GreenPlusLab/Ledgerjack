@@ -35,7 +35,7 @@ file exists, its size and when it changed.
 | Option | If the phone is lost | Effort | Colour |
 | --- | --- | --- | --- |
 | No backup | Everything is lost | None | Red |
-| Locked file kept on the phone | Lost with the phone | Easy | Red after a while (see 4.3) |
+| Locked file kept on the phone | Lost with the phone | Easy | Red after a while (see 5.3) |
 | Locked file on your own computer or USB stick | Safe | By hand | Green |
 | Locked file in your own Google Drive, OneDrive, iCloud or Dropbox (via the phone's Share / Save to menu) | Safe | Easy | Green |
 | Locked file to your own WebDAV / Nextcloud server | Safe | Set up once | Green |
