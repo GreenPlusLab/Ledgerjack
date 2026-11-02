@@ -38,7 +38,14 @@ file exists, its size and when it changed.
 | Locked file kept on the phone | Lost with the phone | Easy | Red after a while (see 4.3) |
 | Locked file on your own computer or USB stick | Safe | By hand | Green |
 | Locked file in your own Google Drive, OneDrive, iCloud or Dropbox (via the phone's Share / Save to menu) | Safe | Easy | Green |
-| Automatic backup to your own cloud | Safe and up to date | Easiest once set up | Green |
+| Locked file to your own WebDAV / Nextcloud server | Safe | Set up once | Green |
+
+LedgerJack does not connect to people's cloud accounts (see the design decision
+in `src/lib/cloudbackup/destinations.ts`): that would mean storing account
+tokens in the browser, approval processes with each provider, and links that
+break when a provider changes its rules. The phone's own Share / Save to menu
+already reaches every cloud, email and USB. The backup health light (5.3) does
+the reminding.
 
 Exports for an accountant (PDF, spreadsheet) are not locked. They carry the
 label "This copy isn't locked. Anyone with the file can read it."
@@ -49,8 +56,8 @@ label "This copy isn't locked. Anyone with the file can read it."
 | --- | --- | --- |
 | 1. Fully private | Type it in + text recognition | Locked file to own computer or USB |
 | 2. Private and safe (default suggestion) | Text recognition | Locked file in own cloud |
-| 3. Easy and free | Free online AI | Automatic backup to own cloud |
-| 4. Most accurate | AI with your own account | Automatic backup to own cloud |
+| 3. Easy and free | Free online AI | Locked file in own cloud |
+| 4. Most accurate | AI with your own account | Locked file in own cloud |
 | Make my own | Any | Any (no backup shows a clear warning) |
 
 Rules:
@@ -70,7 +77,7 @@ offline, costs nothing and always gives the same answer for the same answers.
 2. Would you pay a little for the most accurate reading? (Yes, a few pence a
    receipt / No, it has to be free)
 3. Where would you like your backup kept? (My Google Drive, OneDrive or iCloud /
-   My own computer or a USB stick / Help me choose)
+   My own computer or a USB stick / My own server / Help me choose)
 
 Then one recommendation in plain words, with its colours, its cost, a "Good to
 know" line, and buttons: Choose this / Show me the other options / Change
@@ -117,3 +124,19 @@ from Settings.
 
 Launch priorities: the backup health light (3), "What left my phone" (1) and
 protecting the recovery key (5), then the waiter and the colours.
+
+## 6. What already exists (start here when building)
+
+| Agreed feature | Existing code to build on |
+| --- | --- |
+| Backup health light | `src/components/BackupReminder.tsx` (strong reminder until first backup, gentle after a week); `OffDeviceCopyCard.tsx` |
+| Protect the recovery key | `src/components/RecoveryKeyBackup.tsx` (download / share, password-gated); add print and the "type back two words" check |
+| AI spending cap | `src/components/AICostCard.tsx`, `src/lib/ai/aiUsage.ts` (costs already tracked) |
+| Backup options | `src/lib/cloudbackup/destinations.ts` (device, WebDAV, "server" coming soon), `src/views/CloudBackup.tsx` |
+| AI with your own account | `src/components/AISettingsPanel.tsx`, `src/lib/ai/*` |
+| The waiter | `src/views/Onboarding.tsx` (first-run flow) |
+| Text recognition (OCR) | Not built. Needs a recorded decision for a new dependency (rule 7), bundled language data so it works offline, and tests with real receipt photos. |
+| Free online AI, choose per receipt, "What left my phone", data-saver, re-ask on terms change | Not built. |
+
+Every feature needs tests (`npm test`), and the existing "Coming soon" labels
+should be reviewed at the same time.
