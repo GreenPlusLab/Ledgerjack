@@ -96,7 +96,7 @@ export default function PendingReview() {
       const att = await db.attachments.get(attachmentId);
       if (!att) return;
       const decrypted = await decryptBlob(att.encrypted_iv, att.encrypted_data);
-      const blob = new Blob([decrypted], { type: att.mime_type });
+      const blob = new Blob([new Uint8Array(decrypted)], { type: att.mime_type });
       if (previewUrl) revokeTrackedUrl(previewUrl);
       const url = createTrackedUrl(blob);
       setPreviewUrl(url);

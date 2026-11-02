@@ -73,7 +73,7 @@ export default function FileCabinet({ onBack }: { onBack?: () => void }) {
       const att = await db.attachments.get(tx.attachment_id);
       if (!att) return;
       const decrypted = await decryptBlob(att.encrypted_iv, att.encrypted_data);
-      const url = createTrackedUrl(new Blob([decrypted], { type: att.mime_type }));
+      const url = createTrackedUrl(new Blob([new Uint8Array(decrypted)], { type: att.mime_type }));
       setPreviews((p) => ({ ...p, [tx.id]: url }));
     } catch { /* stays sealed */ } finally { setDecryptingId(null); }
   };
@@ -83,7 +83,7 @@ export default function FileCabinet({ onBack }: { onBack?: () => void }) {
     setDecryptingId(att.id);
     try {
       const decrypted = await decryptBlob(att.encrypted_iv, att.encrypted_data);
-      const url = createTrackedUrl(new Blob([decrypted], { type: att.mime_type }));
+      const url = createTrackedUrl(new Blob([new Uint8Array(decrypted)], { type: att.mime_type }));
       setPreviews((p) => ({ ...p, [att.id]: url }));
     } catch { /* stays sealed */ } finally { setDecryptingId(null); }
   };
