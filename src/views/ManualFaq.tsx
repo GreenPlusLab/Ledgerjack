@@ -29,7 +29,7 @@ const GUIDE: { title: string; body: string }[] = [
   },
   {
     title: "Backups — important",
-    body: "Your books live encrypted on this device. If you lose the device with no backup, they're gone. Use Settings → Backup to save an encrypted copy to a file, your own cloud, or (coming soon) our server. Back up your receipts too, from the File Cabinet.",
+    body: "Your books live encrypted on this device. If you lose the device with no backup, they're gone. Use Settings → Backup to save a locked copy to a file, then keep it in your own cloud, on a computer or a USB stick, or on your own server. Back up your receipts too, from the File Cabinet.",
   },
   {
     title: "Your accountant",

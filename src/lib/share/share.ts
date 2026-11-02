@@ -6,16 +6,21 @@
  * and would route data through Meta/Telegram, so that stays out.)
  */
 
+import { recordLeft } from "../privacy/store";
+
 export function shareViaWhatsApp(text: string, phone?: string): void {
+  void recordLeft("export", "WhatsApp", false);
   const num = phone ? phone.replace(/[^0-9]/g, "") : "";
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
 }
 
 export function shareViaTelegram(text: string, url = ""): void {
+  void recordLeft("export", "Telegram", false);
   window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, "_blank", "noopener");
 }
 
 export function shareViaEmail(subject: string, body: string, to = ""): void {
+  void recordLeft("export", "your email app", false);
   window.open(`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, "_blank", "noopener");
 }
 

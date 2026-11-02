@@ -5,6 +5,7 @@
  * Pass `govTestScenario` while in sandbox to exercise HMRC's test cases.
  */
 
+import { recordLeft } from "../privacy/store";
 import { callHmrc } from "./hmrcClient";
 import { endpoints, ACCEPT, taxYearFor } from "./mtdEndpoints";
 import { loadNino } from "./mtdVault";
@@ -95,13 +96,15 @@ export async function submitQuarterlyUpdate(
       : summary.periodExpenses,
   };
 
-  return callHmrc({
+  const res = await callHmrc({
     method: "POST",
     path: endpoints.submitPeriod(n, businessId, taxYear),
     acceptVersion: ACCEPT.selfEmployment,
     body,
     govTestScenario: opts.scenario,
   });
+  if (res.status >= 200 && res.status < 300) void recordLeft("hmrc", "HMRC (through the LedgerJack HMRC relay)", false);
+  return res;
 }
 
 export async function triggerCalculation(taxYear: string, scenario?: string) {
@@ -126,10 +129,12 @@ export async function getCalculation(calculationId: string, scenario?: string) {
 
 export async function submitFinalDeclaration(taxYear: string, calculationId: string, scenario?: string) {
   const n = await nino();
-  return callHmrc({
+  const res = await callHmrc({
     method: "POST",
     path: endpoints.finalDeclaration(n, taxYear, calculationId),
     acceptVersion: ACCEPT.calculations,
     govTestScenario: scenario,
   });
+  if (res.status >= 200 && res.status < 300) void recordLeft("hmrc", "HMRC (through the LedgerJack HMRC relay)", false);
+  return res;
 }

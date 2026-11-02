@@ -5,7 +5,7 @@
  */
 
 import { useState } from "react";
-import { ArrowLeft, Upload, Link2, CheckCircle2, Plus, Info } from "lucide-react";
+import { ArrowLeft, Upload, CheckCircle2, Plus, Info } from "lucide-react";
 import { useApp } from "../contexts/AppContext";
 import { formatCurrency } from "../lib/currency";
 import { parseCSV, csvRowToPendingTransaction } from "../lib/csv";
@@ -63,22 +63,6 @@ export default function BankReconcile({ onBack }: { onBack: () => void }) {
           <span className="text-brand-600 text-sm font-semibold">Choose file</span>
         </label>
 
-        <div className="bg-white rounded-xl border border-line p-4 flex items-start gap-3">
-          <Link2 className="w-5 h-5 text-ink-soft mt-0.5" />
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-slate-900 text-sm">Connect your bank (live feed)</h3>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">Coming soon</span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Automatically pull transactions from your bank, then let the AI categorise them. This uses
-              Open Banking through a regulated provider (e.g. GoCardless, TrueLayer or Plaid), so it needs
-              an internet connection and a third party sees the data on your behalf. We're planning to add
-              it — funded by supporter contributions. Until then, CSV import above gives you the same
-              reconciliation while keeping everything on your device.
-            </p>
-          </div>
-        </div>
       </div>
 
       {busy && <p className="text-sm text-ink-soft">Reading your file…</p>}

@@ -223,7 +223,7 @@ export async function runSelfCheck(): Promise<SelfCheckReport> {
   } else {
     const age = Date.now() - last;
     const days = Math.floor(age / DAY);
-    // Weekly is the habit we ask for (and BackupReminder nags at 7 days), so the
+    // Weekly is the habit we ask for (and the backup light on the home screen turns amber after 14 days), so the
     // health check must agree — a stricter reminder and a laxer health check
     // would just teach people to ignore one of them.
     checks.push(

@@ -12,6 +12,13 @@ import { parseCurrencyInput, formatCurrency } from '../lib/currency';
 import { loadRules, matchRule, type CategoryRule } from '../lib/rules/rules';
 import { loadTrades, type Trade } from '../lib/trades/trades';
 import Disclaimer from '../components/Disclaimer';
+import PrivacyBadge from '../components/privacy/PrivacyBadge';
+import { AIBlockedError } from '../lib/ai/gateway';
+import { effectiveReading } from '../lib/ai/policy';
+import { READING_OPTIONS, type PrivacyChoice } from '../lib/privacy/choices';
+import { CHOICE_CHANGED_EVENT, loadChoice } from '../lib/privacy/store';
+import { readTextOnDevice, ocrDownloadedBefore, OCR_DOWNLOAD_MB } from '../lib/ocr/ocr';
+import { suggestFromReceiptText, dateOrderFor } from '../lib/ocr/receiptText';
 
 type EntryMode = 'ai' | 'manual';
 
@@ -20,6 +27,11 @@ export default function TransactionEntry() {
   const [aiInput, setAiInput]         = useState('');
   const [aiLoading, setAiLoading]     = useState(false);
   const [aiError, setAiError]         = useState('');
+  const [aiOff, setAiOff]             = useState(false);
+  const [ocrState, setOcrState]       = useState<'idle' | 'confirm' | 'reading'>('idle');
+  const [ocrProgress, setOcrProgress] = useState('');
+  const [ocrNotes, setOcrNotes]       = useState<string[] | null>(null);
+  const [privacy, setPrivacy]         = useState<PrivacyChoice | null>(null);
   const [parsedResult, setParsedResult] = useState<AIParsedTransaction | null>(null);
   const [pendingConfirm, setPendingConfirm] = useState<AIParsedTransaction | null>(null);
   const [splitChoice, setSplitChoice] = useState<'combined' | 'split'>('combined');
@@ -97,19 +109,24 @@ export default function TransactionEntry() {
     return hasImage; // smart: use high quality only for images
   };
 
-  const handleAIParse = async (forceBigModel = false) => {
+  useEffect(() => {
+    const load = () => { loadChoice().then(setPrivacy); };
+    load();
+    window.addEventListener(CHOICE_CHANGED_EVENT, load);
+    return () => window.removeEventListener(CHOICE_CHANGED_EVENT, load);
+  }, []);
+  const reading = effectiveReading(privacy, !!apiKey);
+  const readingInfo = READING_OPTIONS[reading];
+
+  const handleAIParse = async (forceBigModel = false, justThisOne = false) => {
     if (!aiInput.trim()) return;
     setAiLoading(true);
     setAiError('');
+    setAiOff(false);
     setParsedResult(null);
     if (forceBigModel) setPendingConfirm(null);
 
     try {
-      if (!apiKey) {
-        setAiError('No API key configured. Add your OpenAI key in Settings to use AI parsing.');
-        return;
-      }
-
       const hasImage = !!receiptImageData;
       const parsed = await parseWithAI({
         text:               aiInput,
@@ -118,6 +135,7 @@ export default function TransactionEntry() {
         imageData:          receiptImageData || undefined,
         useHighQualityModel: forceBigModel ? true : resolveUseHighQuality(hasImage),
         modelId:            forceBigModel ? 'openai/gpt-4o' : getSelectedModel('scanning'),
+        justThisOne,
       });
 
       // If there's a split suggestion, show the split review UI before committing
@@ -130,6 +148,7 @@ export default function TransactionEntry() {
       // Otherwise, ask the user to confirm the AI-read amount before saving.
       setPendingConfirm(parsed);
     } catch (e: unknown) {
+      if (e instanceof AIBlockedError && e.code === 'ai-off') setAiOff(true);
       const msg = e instanceof Error ? e.message : 'AI parsing failed. Try manual entry.';
       setAiError(msg);
     } finally {
@@ -166,6 +185,7 @@ export default function TransactionEntry() {
       setAiInput('');
       setReceiptFile(null);
       setReceiptImageData(null);
+      setOcrNotes(null);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (e: unknown) {
@@ -209,11 +229,38 @@ export default function TransactionEntry() {
       setAiInput('');
       setReceiptFile(null);
       setReceiptImageData(null);
+      setOcrNotes(null);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Failed to save transaction.';
       setAiError(msg);
+    }
+  };
+
+  // Read the receipt photo on this phone (text recognition). Fills in the form
+  // as suggestions; the person checks every field before saving.
+  const readOnPhone = async () => {
+    if (!receiptImageData) return;
+    if (!ocrDownloadedBefore() && ocrState !== 'confirm') { setOcrState('confirm'); return; }
+    setOcrState('reading');
+    setAiError('');
+    try {
+      const text = await readTextOnDevice(receiptImageData, (status, p) =>
+        setOcrProgress(status.includes('recogniz') ? `Reading… ${Math.round(p * 100)}%` : 'Getting the reader ready…'));
+      const today = new Date().toISOString().slice(0, 10);
+      const s = suggestFromReceiptText(text, dateOrderFor(region), today);
+      if (s.date) setDate(s.date);
+      if (s.merchant) setDescription(s.merchant);
+      if (s.totalMinor !== undefined) setAmount(`${Math.trunc(s.totalMinor / 100)}.${String(s.totalMinor % 100).padStart(2, '0')}`);
+      setIsIncome(false);
+      setOcrNotes(s.notes);
+      setMode('manual');
+    } catch {
+      setAiError("Couldn't read this photo on your phone. Try a clearer photo, or type it in.");
+    } finally {
+      setOcrState('idle');
+      setOcrProgress('');
     }
   };
 
@@ -264,6 +311,7 @@ export default function TransactionEntry() {
       setJobTag('');
       setReceiptFile(null);
       setReceiptImageData(null);
+      setOcrNotes(null);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (e: unknown) {
@@ -482,7 +530,11 @@ export default function TransactionEntry() {
           >
             <Camera className="w-5 h-5" /> Scan a receipt
           </button>
-          <p className="text-[11px] text-ink-soft text-center -mt-1">Snap a photo and the AI reads the amount, date &amp; category — you approve it.</p>
+          <p className="text-[11px] text-ink-soft text-center -mt-1">
+            {reading === 'manual' || reading === 'ocr'
+              ? 'Snap a photo and read it on your phone. You check every field before it counts.'
+              : 'Snap a photo and the AI reads the amount, date & category. You approve it.'}
+          </p>
 
           <div className="flex items-center gap-2 py-1">
             <div className="flex-1 h-px bg-line" />
@@ -537,20 +589,66 @@ export default function TransactionEntry() {
           </div>
 
           {/* Status line — always shows model in use */}
-          <p className="text-xs text-ink-soft font-medium">
-            {apiKey
-              ? `Using your API key · ${modelLabel}`
-              : 'Add your OpenAI key in Settings to enable AI parsing.'}
-          </p>
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-ink-soft font-medium">
+            <span>Receipts: {readingInfo.label}{(reading === 'ownKey') && apiKey ? ` · ${modelLabel}` : ''}</span>
+            <PrivacyBadge colour={readingInfo.colour} text={readingInfo.word} small />
+          </div>
+          {(reading === 'ownKey' || reading === 'freeAI') && !apiKey && (
+            <p className="text-xs text-ink-soft">Add your AI account key in Settings to read receipts with AI.</p>
+          )}
 
+          {receiptImageData && (
+            <div className="space-y-2">
+              {ocrState === 'confirm' ? (
+                <div className="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-3 space-y-2">
+                  <p className="text-xs text-slate-800">
+                    Reading on your phone needs a one-time download of about {OCR_DOWNLOAD_MB} MB from LedgerJack, not from anyone else. Best on Wi-Fi. After that it works offline, and your photo never leaves your phone.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => setOcrState('idle')} className="bg-white border border-line py-2 rounded-lg text-xs font-bold">Not now</button>
+                    <button onClick={readOnPhone} className="bg-brand-600 text-white py-2 rounded-lg text-xs font-bold">Download and read</button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={readOnPhone}
+                  disabled={ocrState === 'reading'}
+                  className="w-full flex flex-wrap items-center justify-center gap-1.5 bg-white border-2 border-emerald-300 text-ink font-bold py-2.5 rounded-xl text-sm disabled:opacity-60"
+                >
+                  {ocrState === 'reading' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Type className="w-4 h-4" />}
+                  {ocrState === 'reading' ? (ocrProgress || 'Reading…') : 'Read on this phone'}
+                  <PrivacyBadge colour="green" small />
+                </button>
+              )}
+            </div>
+          )}
+          {aiOff && (
+            <button
+              onClick={() => handleAIParse(false, true)}
+              disabled={aiLoading}
+              className="w-full flex flex-wrap items-center justify-center gap-1.5 bg-white border-2 border-amber-300 text-ink font-bold py-2.5 rounded-xl text-sm"
+            >
+              <Sparkles className="w-4 h-4" /> Read just this one with AI
+              <PrivacyBadge colour="amber" text="Sent to the AI company you chose" small />
+            </button>
+          )}
           {aiError && (
-            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 text-red-700 text-sm font-medium">
+            <div className={`${aiOff ? 'bg-amber-50 border-amber-300 text-slate-800' : 'bg-red-50 border-red-200 text-red-700'} border-2 rounded-xl p-3 text-sm font-medium`}>
               {aiError}
             </div>
           )}
         </div>
       ) : (
         <div className="space-y-3">
+          {ocrNotes !== null && (
+            <div className="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-3 space-y-1">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <p className="text-sm font-bold text-slate-900">Read on your phone. Check each field before saving.</p>
+                <PrivacyBadge colour="green" small />
+              </div>
+              {ocrNotes.map((n) => <p key={n} className="text-xs text-slate-700">{n}</p>)}
+            </div>
+          )}
           <div className="flex bg-slate-100 rounded-xl p-1 border border-line">
             <button
               onClick={() => setIsIncome(false)}

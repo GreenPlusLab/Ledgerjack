@@ -40,7 +40,10 @@ export type View =
   | 'health'
   | 'books-check'
   | 'provisional'
-  | 'report';
+  | 'report'
+  | 'privacy'
+  | 'left-phone'
+  | 'recovery-check';
 
 interface NavProps {
   currentView: View;

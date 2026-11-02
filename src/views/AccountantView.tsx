@@ -126,18 +126,6 @@ export default function AccountantView({ onBack }: { onBack: () => void }) {
         {packMsg && <p className="text-[11px] text-slate-500">{packMsg}</p>}
       </div>
 
-      {/* Live share link — coming soon */}
-      <div className="bg-white rounded-xl border border-line p-3 flex items-start gap-2">
-        <Users className="w-4 h-4 text-ink-soft mt-0.5" />
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-slate-900">Give your accountant a live read-only link</span>
-            <span className="text-[10px] font-bold uppercase text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">Coming soon</span>
-          </div>
-          <p className="text-xs text-slate-500 mt-1">A live link needs a small server component (supporter-funded). For now, the pack above gives your accountant everything.</p>
-        </div>
-      </div>
-
       {/* Browse to flag */}
       <div className="bg-white rounded-xl border border-line p-3 space-y-2">
         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Flag a transaction</p>

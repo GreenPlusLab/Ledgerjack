@@ -7,6 +7,7 @@
  * production — they're centralised here for a one-place fix. Sandbox-first.
  */
 
+import { recordLeft } from "../privacy/store";
 import { callHmrc } from "../mtd/hmrcClient";
 import { loadVrn } from "../mtd/mtdVault";
 
@@ -86,11 +87,13 @@ export function buildVatPayload(input: VatReturnInput, finalised: boolean): VatR
 
 export async function submitVatReturn(payload: VatReturnPayload, scenario?: string) {
   const v = await vrn();
-  return callHmrc({
+  const res = await callHmrc({
     method: "POST",
     path: `/organisations/vat/${v}/returns`,
     acceptVersion: ACCEPT,
     body: payload,
     govTestScenario: scenario,
   });
+  if (res.status >= 200 && res.status < 300) void recordLeft("hmrc", "HMRC VAT (through the LedgerJack HMRC relay)", false);
+  return res;
 }
