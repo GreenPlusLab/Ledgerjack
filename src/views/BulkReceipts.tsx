@@ -17,6 +17,12 @@ import { readTextOnDevice, ocrDownloadedBefore, OCR_DOWNLOAD_MB } from "../lib/o
 import { suggestFromReceiptText, dateOrderFor } from "../lib/ocr/receiptText";
 import { createTransaction } from "../lib/ledger";
 import { parseWithAI, aiParsedToPendingTransaction } from "../lib/ai";
+import { useCrypto } from "../contexts/CryptoContext";
+import { useAttachment } from "../hooks/useAttachment";
+import { blobToUint8Array } from "../lib/image";
+import { db } from "../lib/db";
+import { checkReading, flagsOf, type ReadingFlag } from "../lib/ai/readingChecks";
+import FullAttention from "../components/FullAttention";
 
 type Status = "queued" | "processing" | "done" | "error";
 interface Item { name: string; status: Status; message?: string }
@@ -38,14 +44,34 @@ export default function BulkReceipts({ onBack }: { onBack: () => void }) {
   const [confirmOcr, setConfirmOcr] = useState<File[] | null>(null);
   const [choice, setChoice] = useState<PrivacyChoice | null>(null);
   const cfg = useRegionConfig();
+  const { encryptBlob } = useCrypto();
+  const { compressToWebP } = useAttachment();
   useEffect(() => { loadChoice().then(setChoice); }, []);
+
+  // Keep the photo with the entry (encrypted), so it can be checked against
+  // the receipt in Review.
+  async function savePhoto(file: File): Promise<string> {
+    const compressed = await compressToWebP(file);
+    const encrypted = await encryptBlob(await blobToUint8Array(compressed));
+    const id = crypto.randomUUID();
+    await db.attachments.add({
+      id, transaction_id: "", encrypted_iv: encrypted.iv, encrypted_data: encrypted.ciphertext,
+      mime_type: "image/webp", created_at: Date.now(),
+    });
+    return id;
+  }
   const reading = effectiveReading(choice, !!apiKey);
   const onPhone = reading === "manual" || reading === "ocr";
 
   async function onFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
-    if (onPhone) {
+    // Read the choice now, not from the first render, so a quick tap can't
+    // take the AI route before the choice has loaded.
+    const latest = await loadChoice();
+    setChoice(latest);
+    const r = effectiveReading(latest, !!apiKey);
+    if (r === "manual" || r === "ocr") {
       if (!ocrDownloadedBefore()) { setConfirmOcr(files); return; }
       await readAllOnPhone(files);
       return;
@@ -66,8 +92,13 @@ export default function BulkReceipts({ onBack }: { onBack: () => void }) {
         const text = await readTextOnDevice(files[i]!);
         const s = suggestFromReceiptText(text, dateOrderFor(region), today);
         if (s.totalMinor === undefined) throw new Error("No clear total on this one. Add it by hand.");
+        // A date that wasn't found stays empty and is flagged; never today's date.
+        const flags: ReadingFlag[] = flagsOf(checkReading(
+          { date: s.date ?? "", amount: s.totalMinor, description: s.merchant }, today, String));
+        if (s.notes.length > 0) flags.push("unsure-reading");
+        const attachmentId = await savePhoto(files[i]!);
         await createTransaction(
-          { date: s.date ?? today, description: s.merchant ?? "Receipt", pending_review: true, job_tag: undefined, attachment_id: undefined },
+          { date: s.date ?? "", description: s.merchant ?? "Receipt", pending_review: true, job_tag: undefined, attachment_id: attachmentId, review_flags: flags.length ? flags : undefined },
           makeSimpleSplits(cfg.allowableExpensesParent, cfg.cashAccount, s.totalMinor),
         );
         setItems((prev) => prev.map((it, idx) => idx === i ? { ...it, status: "done" } : it));
@@ -90,8 +121,10 @@ export default function BulkReceipts({ onBack }: { onBack: () => void }) {
       try {
         const dataUrl = await fileToDataUrl(files[i]);
         const parsed = await parseWithAI({ text: "", apiKey, region, imageData: dataUrl, useHighQualityModel: true, justThisOne });
+        if (!(parsed.amount > 0)) throw new Error("No clear total on this one. Add it by hand.");
         const tx = aiParsedToPendingTransaction(parsed, region);
-        await createTransaction(tx.txFields, tx.splits);
+        const attachmentId = await savePhoto(files[i]!);
+        await createTransaction({ ...tx.txFields, attachment_id: attachmentId }, tx.splits);
         setItems((prev) => prev.map((it, idx) => idx === i ? { ...it, status: "done" } : it));
       } catch (err) {
         if (err instanceof AIBlockedError) {
@@ -124,6 +157,8 @@ export default function BulkReceipts({ onBack }: { onBack: () => void }) {
         before it counts. {onPhone ? "They're read on your phone, so they never leave it." : "They're read by the AI you chose."}
       </p>
 
+      <FullAttention />
+
       <label className="bg-white rounded-xl border-2 border-dashed border-brand-300 p-6 flex flex-col items-center gap-2 cursor-pointer">
         <Images className="w-8 h-8 text-brand-400" />
         <span className="text-sm font-semibold text-brand-600">Choose photos</span>
@@ -153,7 +188,7 @@ export default function BulkReceipts({ onBack }: { onBack: () => void }) {
 
       {items.length > 0 && (
         <>
-          {done > 0 && <p className="text-sm text-income font-semibold">{done} added to your review queue.</p>}
+          {done > 0 && <p className="text-sm text-income font-semibold">{done} added to your review queue. Check each one against its photo there.</p>}
           <div className="space-y-1.5">
             {items.map((it, i) => (
               <div key={i} className="bg-white rounded-lg border border-line p-2.5 flex items-center gap-2">

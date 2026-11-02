@@ -130,7 +130,10 @@ export async function deleteTransaction(id: string): Promise<void> {
 }
 
 export async function approveTransaction(id: string): Promise<void> {
-  await db.transactions.update(id, { pending_review: false, last_modified: Date.now() });
+  const tx = await db.transactions.get(id);
+  if (tx && !tx.date) throw new LedgerError('Add the date from the receipt before approving this entry.');
+  if (tx?.review_flags?.includes('total-missing')) throw new LedgerError('Add the total from the receipt before approving this entry.');
+  await db.transactions.update(id, { pending_review: false, review_flags: undefined, last_modified: Date.now() });
 }
 
 export async function lockTransaction(id: string): Promise<void> {

@@ -34,6 +34,12 @@ export interface DBTransaction {
   attachment_id?: string;
   /** True when AI-parsed or CSV-imported and awaiting human review */
   pending_review: boolean;
+  /**
+   * What looked wrong when the receipt was read (codes from
+   * lib/ai/readingChecks, no amounts or names). Shown in Review; cleared when
+   * the person edits or approves the entry.
+   */
+  review_flags?: string[];
   /** True when the fiscal period is closed — writes are rejected */
   is_locked: boolean;
   last_modified: number;

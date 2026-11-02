@@ -3,7 +3,9 @@ import { Sparkles, Camera, Upload, Type, ChevronDown, X, Loader2, GitBranch, Lis
 import { useApp, useRegionConfig } from '../contexts/AppContext';
 import { useCrypto } from '../contexts/CryptoContext';
 import { createTransaction, makeSimpleSplits, LedgerError } from '../lib/ledger';
-import { parseWithAI, aiParsedToPendingTransaction, needsReview, confidenceOf, CONFIDENCE_THRESHOLD, type AIParsedTransaction } from '../lib/ai';
+import { parseWithAI, aiParsedToPendingTransaction, checkAIReading, type AIParsedTransaction } from '../lib/ai';
+import { MUST_FIX, flagsOf } from '../lib/ai/readingChecks';
+import FullAttention, { ReadingIssues } from '../components/FullAttention';
 import { getSelectedModel } from '../lib/ai/aiModels';
 import { blobToUint8Array } from '../lib/image';
 import { useAttachment } from '../hooks/useAttachment';
@@ -197,8 +199,8 @@ export default function TransactionEntry() {
     if (!pendingConfirm) return;
     const p = pendingConfirm;
     setDescription(p.description);
-    setDate(p.date);
-    setAmount((p.amount / 100).toFixed(2));
+    setDate(p.date); // empty when the date couldn't be read
+    setAmount(p.amount > 0 ? (p.amount / 100).toFixed(2) : '');
     setDebitAccount(p.debit_account);
     setCreditAccount(p.credit_account);
     setJobTag(p.job_tag || '');
@@ -211,6 +213,7 @@ export default function TransactionEntry() {
     try {
       const attachmentId = await saveReceiptIfAny();
       if (splitChoice === 'split' && parsedResult.split_suggestion && parsedResult.split_suggestion.length > 1) {
+        const flags = flagsOf(checkAIReading(parsedResult, (m) => String(m)));
         for (const s of parsedResult.split_suggestion) {
           const splits = makeSimpleSplits(s.debit_account, s.credit_account, s.amount);
           await createTransaction({
@@ -219,6 +222,7 @@ export default function TransactionEntry() {
             pending_review: true,
             job_tag:        s.job_tag,
             attachment_id:  attachmentId,
+            review_flags:   flags.length ? flags : undefined,
           }, splits);
         }
       } else {
@@ -250,7 +254,7 @@ export default function TransactionEntry() {
         setOcrProgress(status.includes('recogniz') ? `Reading… ${Math.round(p * 100)}%` : 'Getting the reader ready…'));
       const today = new Date().toISOString().slice(0, 10);
       const s = suggestFromReceiptText(text, dateOrderFor(region), today);
-      if (s.date) setDate(s.date);
+      setDate(s.date ?? ''); // never filled in with today's date
       if (s.merchant) setDescription(s.merchant);
       if (s.totalMinor !== undefined) setAmount(`${Math.trunc(s.totalMinor / 100)}.${String(s.totalMinor % 100).padStart(2, '0')}`);
       setIsIncome(false);
@@ -277,6 +281,7 @@ export default function TransactionEntry() {
     const amountVal = parseCurrencyInput(amount);
     if (!amountVal) { setSubmitError('Please enter a valid amount.'); return; }
     if (!description.trim()) { setSubmitError('Please enter a description.'); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { setSubmitError('Please enter the date from the receipt.'); return; }
 
     try {
       let attachmentId: string | undefined;
@@ -319,6 +324,11 @@ export default function TransactionEntry() {
       else setSubmitError(e instanceof Error ? `Couldn't save: ${e.message}` : 'Failed to save transaction.');
     }
   };
+
+  const fmtMoney = (minor: number) => formatCurrency(minor, region);
+  const confirmIssues = pendingConfirm ? checkAIReading(pendingConfirm, fmtMoney) : [];
+  const confirmIncomplete = confirmIssues.some((i) => MUST_FIX.has(i.flag));
+  const splitIssues = parsedResult ? checkAIReading(parsedResult, fmtMoney) : [];
 
   const modelLabel =
     aiModel === 'quality' ? 'gpt-4o (quality)'
@@ -363,23 +373,17 @@ export default function TransactionEntry() {
                 <Sparkles className="w-4 h-4 text-brand-600" />
                 <p className="text-sm font-bold text-slate-900">Check what was scanned</p>
               </div>
-              <p className="text-xs text-slate-500">
-                Please review this before it's saved — AI can misread receipts. Make sure the <span className="font-semibold">amount</span> is right.
-              </p>
+              <FullAttention />
 
-              {/* The model tells us when it's unsure — so we say so, rather than
-                  presenting a shaky number with the same confidence as a clear one. */}
-              {needsReview(pendingConfirm) && (
+              {/* Each thing that looks wrong, in plain words. Nothing is changed for them. */}
+              {(confirmIssues.length > 0 || pendingConfirm.uncertain_about) && (
                 <div className="bg-amber-50 border border-amber-300 rounded-lg p-2.5 flex gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="space-y-1">
-                    <p className="text-[11px] font-bold text-amber-800">
-                      {confidenceOf(pendingConfirm.amount_confidence) < CONFIDENCE_THRESHOLD
-                        ? "Not sure it read the amount correctly — please check it against the receipt."
-                        : "Not sure about the category — please check it's filed in the right place."}
-                    </p>
+                    <p className="text-[11px] font-bold text-amber-900">Check these</p>
+                    <ReadingIssues messages={confirmIssues.map((i) => i.message)} />
                     {pendingConfirm.uncertain_about && (
-                      <p className="text-[11px] text-amber-800 leading-relaxed">{pendingConfirm.uncertain_about}</p>
+                      <p className="text-[11px] text-amber-900 leading-relaxed">The reader said: {pendingConfirm.uncertain_about}</p>
                     )}
                   </div>
                 </div>
@@ -387,15 +391,19 @@ export default function TransactionEntry() {
 
               <div className="bg-slate-50 border border-line rounded-lg p-3 space-y-1">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Amount</p>
-                <p className="text-2xl font-bold text-slate-900 num">{formatCurrency(pendingConfirm.amount, region)}</p>
+                <p className="text-2xl font-bold text-slate-900 num">{pendingConfirm.amount > 0 ? formatCurrency(pendingConfirm.amount, region) : 'Not read'}</p>
                 <div className="pt-1 space-y-0.5">
-                  <p className="text-sm text-slate-700 truncate"><span className="text-ink-soft">Description:</span> {pendingConfirm.description}</p>
-                  <p className="text-sm text-slate-700"><span className="text-ink-soft">Date:</span> {pendingConfirm.date}</p>
+                  <p className="text-sm text-slate-700 truncate"><span className="text-ink-soft">Description:</span> {pendingConfirm.description || 'Not read'}</p>
+                  <p className="text-sm text-slate-700"><span className="text-ink-soft">Date:</span> {pendingConfirm.date || 'Not read'}</p>
                   <p className="text-sm text-slate-700 truncate"><span className="text-ink-soft">Category:</span> {pendingConfirm.debit_account}</p>
                 </div>
               </div>
 
-              <p className="text-sm font-bold text-ink text-center">Is <span className="text-brand-700 num">{formatCurrency(pendingConfirm.amount, region)}</span> correct?</p>
+              {confirmIncomplete ? (
+                <p className="text-sm font-bold text-ink text-center">Something couldn't be read. Fill it in from the receipt.</p>
+              ) : (
+                <p className="text-sm font-bold text-ink text-center">Does every field match the receipt?</p>
+              )}
 
               {trades.length > 0 && (
                 <select
@@ -409,12 +417,21 @@ export default function TransactionEntry() {
               )}
 
               <div className="flex gap-2">
-                <button
-                  onClick={handleConfirmScanned}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white py-2.5 rounded-lg text-sm font-bold transition-colors"
-                >
-                  <CheckCircle2 className="w-4 h-4" /> Yes — save
-                </button>
+                {confirmIncomplete ? (
+                  <button
+                    onClick={handleEditScanned}
+                    className="flex-1 flex items-center justify-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white py-2.5 rounded-lg text-sm font-bold transition-colors"
+                  >
+                    <Pencil className="w-4 h-4" /> Fill in what's missing
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleConfirmScanned}
+                    className="flex-1 flex items-center justify-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white py-2.5 rounded-lg text-sm font-bold transition-colors"
+                  >
+                    <CheckCircle2 className="w-4 h-4" /> I've checked it, save
+                  </button>
+                )}
                 <button
                   onClick={handleEditScanned}
                   className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold transition-colors"
@@ -452,6 +469,8 @@ export default function TransactionEntry() {
               <p className="text-xs text-amber-700 font-medium">
                 This receipt contains multiple transaction types. How would you like to record it?
               </p>
+              <FullAttention />
+              <ReadingIssues messages={splitIssues.map((i) => i.message)} />
               <div className="flex p-0.5 bg-amber-100 rounded-lg border border-amber-200">
                 <button
                   onClick={() => setSplitChoice('split')}
@@ -647,6 +666,7 @@ export default function TransactionEntry() {
                 <PrivacyBadge colour="green" small />
               </div>
               {ocrNotes.map((n) => <p key={n} className="text-xs text-slate-700">{n}</p>)}
+              <div className="pt-1"><FullAttention /></div>
             </div>
           )}
           <div className="flex bg-slate-100 rounded-xl p-1 border border-line">

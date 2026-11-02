@@ -3,6 +3,7 @@ import type { DBTransaction, DBSplit } from './db';
 import { TAX_REGIONS, type TaxRegion } from './regions';
 import { parseCurrencyInput } from './currency';
 import { callAI } from './ai/gateway';
+import { checkReading, cleanDate, flagsOf, type ReadingIssue } from './ai/readingChecks';
 
 export interface AIParserRequest {
   text?: string;
@@ -80,7 +81,7 @@ If the receipt contains BOTH business and personal items (e.g., "3x paint brushe
 For job costing, extract individual line items. Return a "line_items" array with: description, quantity (if present), unit_price (if present), total (decimal), account (best matching account path).
 
 **Handwritten & Low-Quality Sources:**
-When parsing what appears to be a handwritten invoice, crumpled receipt, or photographed note: be tolerant of spelling variants, abbreviations, crossed-out text, and unclear formatting. Infer the most plausible merchant, date, and amount.
+When parsing what appears to be a handwritten invoice, crumpled receipt, or photographed note: be tolerant of spelling variants, abbreviations, crossed-out text, and unclear formatting. Read the merchant, date and amount as written. If one of them can't be read, use null for it and say so in "uncertain_about". Never guess.
 
 ## Output Schema
 
@@ -137,7 +138,7 @@ Put whatever you struggled with in "uncertain_about" (e.g. "total could be 12.50
 - Expenses: debit the expense account, credit Assets:Cash
 - Income: debit Assets:Cash, credit the income account
 - Amount always positive decimal
-- Use today's date if not found
+- If the date is not printed or can't be read, use null for "date". Never guess a date and never use today's date instead
 - If a job name, site, or client is clearly mentioned, extract it as job_tag`;
 
 function getRegionPrompt(region: TaxRegion): string {
@@ -211,9 +212,13 @@ export async function parseWithAI(
   const amount = parseCurrencyInput(String(parsed.amount));
 
   return {
-    description:    parsed.description || 'Unknown',
-    date:           parsed.date || new Date().toISOString().split('T')[0],
+    description:    typeof parsed.description === 'string' ? parsed.description.trim() : '',
+    // A missing or unreadable date stays empty and is flagged; never today's date.
+    date:           cleanDate(parsed.date),
     amount,
+    amount_confidence:   typeof parsed.amount_confidence === 'number' ? parsed.amount_confidence : undefined,
+    category_confidence: typeof parsed.category_confidence === 'number' ? parsed.category_confidence : undefined,
+    uncertain_about:     typeof parsed.uncertain_about === 'string' && parsed.uncertain_about.trim() ? parsed.uncertain_about.trim() : undefined,
     debit_account:  parsed.debit_account  || cfg.allowableExpensesParent,
     credit_account: parsed.credit_account || cfg.cashAccount,
     job_tag:        parsed.job_tag || undefined,
@@ -225,17 +230,45 @@ export async function parseWithAI(
   };
 }
 
+const today = () => new Date().toISOString().split('T')[0]!;
+
+/**
+ * What looks wrong with an AI reading, in plain words for the screen. `fmt`
+ * turns pence into money text. Nothing is changed or blocked by this.
+ */
+export function checkAIReading(
+  parsed: AIParsedTransaction,
+  fmt: (minor: number) => string,
+  todayIso: string = today(),
+): ReadingIssue[] {
+  return checkReading(
+    {
+      date: parsed.date,
+      amount: parsed.amount,
+      description: parsed.description,
+      itemTotals: parsed.line_items?.map((i) => parseCurrencyInput(String(i.total))),
+      splitAmounts: parsed.split_suggestion?.map((s) => s.amount),
+      amountConfidence: parsed.amount_confidence,
+      categoryConfidence: parsed.category_confidence,
+    },
+    todayIso,
+    fmt,
+  );
+}
+
 export function aiParsedToPendingTransaction(
   parsed: AIParsedTransaction,
   _region: TaxRegion,
 ): { txFields: Omit<DBTransaction, 'id' | 'last_modified' | 'is_locked'>; splits: Omit<DBSplit, 'id' | 'transaction_id'>[] } {
+  const flags = flagsOf(checkAIReading(parsed, (m) => String(m)));
   return {
     txFields: {
       date:           parsed.date,
-      description:    parsed.description,
+      description:    parsed.description || 'Receipt',
       pending_review: true,
       job_tag:        parsed.job_tag,
       attachment_id:  undefined,
+      review_flags:   flags.length ? flags : undefined,
     },
     splits: makeSimpleSplits(parsed.debit_account, parsed.credit_account, parsed.amount),
   };

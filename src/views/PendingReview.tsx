@@ -7,6 +7,8 @@ import { useCrypto } from '../contexts/CryptoContext';
 import { formatCurrency, parseCurrencyInput } from '../lib/currency';
 import { useAttachment } from '../hooks/useAttachment';
 import Disclaimer from '../components/Disclaimer';
+import FullAttention, { ReadingIssues } from '../components/FullAttention';
+import { FLAG_TEXT, MUST_FIX, storedFlags } from '../lib/ai/readingChecks';
 
 export default function PendingReview() {
   const [pending, setPending] = useState<TransactionWithSplits[]>([]);
@@ -79,9 +81,11 @@ export default function PendingReview() {
     try {
       const amountVal = parseCurrencyInput(editAmount);
       if (!amountVal) { setError('Invalid amount.'); return; }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(editDate)) { setError('Enter the date from the receipt.'); return; }
       await updateTransaction(
         id,
-        { date: editDate, description: editDesc, job_tag: editJobTag || undefined },
+        // The person has now looked at and saved every field, so the reading flags are cleared.
+        { date: editDate, description: editDesc, job_tag: editJobTag || undefined, review_flags: undefined },
         makeSimpleSplits(editDebitAccount, editCreditAccount, amountVal),
       );
       setEditingId(null);
@@ -132,6 +136,8 @@ export default function PendingReview() {
         Pending Review ({pending.length})
       </h2>
 
+      <FullAttention compact />
+
       {error && (
         <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 text-red-700 text-sm font-medium">
           {error}
@@ -143,6 +149,9 @@ export default function PendingReview() {
           const isEditing = editingId === tx.id;
           const debitSplit = tx.splits.find((s) => s.amount > 0);
           const isExpense = debitSplit?.account_id.startsWith('Expenses');
+          const flags = storedFlags(tx.review_flags);
+          if (!tx.date && !flags.includes('date-missing')) flags.unshift('date-missing');
+          const incomplete = flags.some((f) => MUST_FIX.has(f));
 
           return (
             <div key={tx.id} className="bg-white rounded-xl border border-line p-4 space-y-3">
@@ -217,7 +226,7 @@ export default function PendingReview() {
                       <div>
                         <p className="font-semibold text-slate-900">{tx.description}</p>
                         <p className="text-xs text-ink-soft font-medium">
-                          {tx.date} &middot; {debitSplit?.account_id}
+                          {tx.date || 'No date'} &middot; {debitSplit?.account_id}
                         </p>
                         {tx.job_tag && (
                           <span className="inline-block mt-1 text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-semibold border border-brand-200">
@@ -231,16 +240,33 @@ export default function PendingReview() {
                     </span>
                   </div>
 
+                  {flags.length > 0 && (
+                    <div className="bg-amber-50 border border-amber-300 rounded-lg p-2.5 space-y-1">
+                      <p className="text-[11px] font-bold text-amber-900">Check these</p>
+                      <ReadingIssues messages={flags.map((f) => FLAG_TEXT[f])} />
+                    </div>
+                  )}
+
                   <div className="flex gap-2 pt-1">
-                    <button
-                      onClick={() => handleApprove(tx.id)}
-                      className="flex-1 flex items-center justify-center gap-1 bg-brand-500 text-white py-2 rounded-lg text-sm font-bold hover:bg-brand-600 transition-colors"
-                    >
-                      <Check className="w-4 h-4" /> Approve & Save
-                    </button>
+                    {incomplete ? (
+                      <button
+                        onClick={() => startEdit(tx)}
+                        className="flex-1 flex items-center justify-center gap-1 bg-brand-500 text-white py-2 rounded-lg text-sm font-bold hover:bg-brand-600 transition-colors"
+                      >
+                        <Edit3 className="w-4 h-4" /> Fill in what's missing
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleApprove(tx.id)}
+                        className="flex-1 flex items-center justify-center gap-1 bg-brand-500 text-white py-2 rounded-lg text-sm font-bold hover:bg-brand-600 transition-colors"
+                      >
+                        <Check className="w-4 h-4" /> Approve & Save
+                      </button>
+                    )}
                     <button
                       onClick={() => startEdit(tx)}
                       className="px-3 py-2 bg-slate-100 border border-line text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                      aria-label="Edit"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>

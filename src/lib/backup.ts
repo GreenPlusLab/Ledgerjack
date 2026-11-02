@@ -68,6 +68,10 @@ function validateTransaction(raw: unknown, idx: number): DBTransaction {
     description:    assertString(r.description, `transactions[${idx}].description`),
     job_tag:        r.job_tag   != null ? assertString(r.job_tag,   `transactions[${idx}].job_tag`)   : undefined,
     attachment_id:  r.attachment_id != null ? assertString(r.attachment_id, `transactions[${idx}].attachment_id`) : undefined,
+    // Kept on restore (these were previously dropped when a backup was restored).
+    trade:          r.trade != null ? assertString(r.trade, `transactions[${idx}].trade`) : undefined,
+    flag_accountant: r.flag_accountant != null ? assertBoolean(r.flag_accountant, `transactions[${idx}].flag_accountant`) : undefined,
+    review_flags:   Array.isArray(r.review_flags) ? r.review_flags.filter((f): f is string => typeof f === 'string') : undefined,
     pending_review: assertBoolean(r.pending_review, `transactions[${idx}].pending_review`),
     is_locked:      assertBoolean(r.is_locked,      `transactions[${idx}].is_locked`),
     last_modified:  assertNumber(r.last_modified,   `transactions[${idx}].last_modified`),
