@@ -26,6 +26,7 @@ jobs:
         with:
           node-version: "22"
       - name: Run checks and record output
+        shell: bash {0}
         run: |
           set +e
           mkdir -p .claude-results
@@ -45,6 +46,7 @@ jobs:
             echo "=== audit (all)"; npm audit 2>&1 | tail -15
           } > "$out"
       - name: Save results to the branch
+        if: always()
         run: |
           git config user.name "results-bot"
           git config user.email "results-bot@users.noreply.github.com"
