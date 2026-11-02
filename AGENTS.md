@@ -34,12 +34,17 @@ Stack: React 18, TypeScript, Vite, Tailwind, Dexie, Vitest.
    Diagnostics report counts only, never ledger contents.
 7. **No new runtime dependencies** without a stated reason. The shipped dependency
    list is deliberately small.
-8. **Tax deadlines and due dates only come from HMRC's own system.** For Making
-   Tax Digital, use the obligations HMRC's API returns for that person. Never
-   hardcode a due date, work one out, or let AI state one. If HMRC's answer
-   isn't available, say so rather than showing a date. Current AI models miss
-   consequential tax deadlines (Surge AI, "DAYJOB: Tax", October 2026:
-   https://surgehq.ai/blog/dayjob-tax).
+8. **Deadlines come from HMRC, never from guesswork or AI.**
+   - For a person connected to HMRC, their actual due dates come only from the
+     obligations HMRC's API returns for them. If that answer isn't available,
+     say so rather than showing a date.
+   - The general planning calendar (`src/lib/deadlines.ts`,
+     `src/lib/insights/deadlines.ts`) may list HMRC's published standard dates,
+     each with a source link and a "check GOV.UK" note. Those dates have tests
+     and are checked against GOV.UK every tax year and after every Budget.
+   - AI never states, works out or reminds anyone of a deadline. Current AI
+     models miss consequential tax deadlines (Surge AI, "DAYJOB: Tax", October
+     2026: https://surgehq.ai/blog/dayjob-tax).
 
 ## How to verify your work
 
