@@ -21,6 +21,7 @@ import { loadRules } from '../lib/rules/rules';
 import { db } from '../lib/db';
 import BiometricSetup from '../components/BiometricSetup';
 import { APP_MOTTO } from '../lib/brand';
+import { recordLeft } from '../lib/privacy/store';
 
 interface DedupRow {
   row: CSVRow;
@@ -121,6 +122,7 @@ export default function Settings({ onNavigate }: { onNavigate?: (view: View) => 
     try {
       const json = await exportBackup();
       downloadFile(json, `ledgerjack-backup-${new Date().toISOString().split('T')[0]}.json`, 'application/json');
+      void recordLeft('export', 'a file on this device', false);
       updateBackupTimestamp();
       addExportAuditEntry('backup');
       setExportMsg('Backup saved. Keep a copy off this device too — see Backup & security.');
@@ -577,6 +579,20 @@ export default function Settings({ onNavigate }: { onNavigate?: (view: View) => 
           <div>
             <h3 className="font-bold text-slate-900">Your accountant</h3>
             <p className="text-xs text-slate-500">Flag items and send an accountant pack</p>
+          </div>
+        </div>
+        <span className="text-ink-soft text-xl leading-none">›</span>
+      </button>
+
+      <button
+        onClick={() => onNavigate?.('privacy')}
+        className="w-full bg-white rounded-xl border-2 border-brand-300 p-4 flex items-center justify-between text-left"
+      >
+        <div className="flex items-center gap-2">
+          <Shield className="w-5 h-5 text-brand-600" />
+          <div>
+            <h3 className="font-bold text-slate-900">Your privacy choices</h3>
+            <p className="text-xs text-slate-500">How receipts are read, where backups go, what left your phone</p>
           </div>
         </div>
         <span className="text-ink-soft text-xl leading-none">›</span>

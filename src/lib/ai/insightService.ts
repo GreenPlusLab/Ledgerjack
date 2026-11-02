@@ -10,8 +10,7 @@
  */
 
 import { INSIGHTS_DEFAULT, getModel } from "./aiModels";
-import { callOpenRouter } from "./openrouterClient";
-import { recordUsage } from "./aiUsage";
+import { callAI } from "./gateway";
 import type { FinancialMetrics } from "../insights/metrics";
 import { TAX_REGIONS, type TaxRegion } from "../regions";
 
@@ -85,8 +84,7 @@ export async function generateInsight(
     },
   ];
 
-  const or = await callOpenRouter(model.id, messages, apiKey, { maxTokens: 900, temperature: 0 });
-  recordUsage(model.id, or.promptTokens, or.completionTokens, or.costUSD).catch(() => { /* best-effort */ });
+  const or = await callAI({ purpose: "question", model: model.id, messages, apiKey, maxTokens: 900, temperature: 0 });
 
   return or.content.trim() || "No explanation was returned.";
 }
@@ -132,7 +130,6 @@ export async function askFollowUp(
     { role: "user" as const, content: `DATA:\n${JSON.stringify(dataBlockFor(metrics, region), null, 2)}\n\nQUESTION: ${question}` },
   ];
 
-  const or = await callOpenRouter(model.id, messages, apiKey, { maxTokens: 600, temperature: 0 });
-  recordUsage(model.id, or.promptTokens, or.completionTokens, or.costUSD).catch(() => { /* best-effort */ });
+  const or = await callAI({ purpose: "question", model: model.id, messages, apiKey, maxTokens: 600, temperature: 0 });
   return or.content.trim() || "No answer was returned.";
 }

@@ -26,7 +26,7 @@ export default function AISettingsPanel() {
     <div className="bg-white rounded-xl border border-line p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Zap className="w-5 h-5 text-brand-600" />
-        <h3 className="font-bold text-slate-900">AI (OpenRouter key)</h3>
+        <h3 className="font-bold text-slate-900">AI account (OpenRouter)</h3>
       </div>
 
       <div className="space-y-2">
@@ -65,6 +65,10 @@ export default function AISettingsPanel() {
             <strong>Topped up your AI credits?</strong> What you pay OpenRouter to run scanning is a cost of running your business — so keep the receipt and add it to your ledger like any other expense. Easy to forget, and it's your money. Check with your accountant if you're unsure what's claimable.
           </p>
         </div>
+
+        <p className="text-[11px] text-slate-700 leading-relaxed bg-slate-50 border border-line rounded-lg p-2.5">
+          <strong>No money for AI?</strong> A free OpenRouter account (no card needed) gives you a key too. Paste it here and pick <strong>Free online AI</strong> in Settings, Your privacy choices. LedgerJack then uses only free models, which have daily limits and may use what you send to train their AI.
+        </p>
 
         <p className="text-[10px] text-ink-soft leading-relaxed">
           One OpenRouter key powers all AI: OpenAI models for scanning and entries,

@@ -43,6 +43,9 @@ import BulkReceipts from './views/BulkReceipts';
 import CloudBackup from './views/CloudBackup';
 import AccountantView from './views/AccountantView';
 import TrustView from './views/TrustView';
+import PrivacySettings from './views/PrivacySettings';
+import LeftMyPhone from './views/LeftMyPhone';
+import RecoveryCheckView from './views/RecoveryCheckView';
 import { processRecurringInvoices } from './lib/invoices/recurringInvoices';
 import { processRecurring } from './lib/recurring/recurring';
 
@@ -190,6 +193,9 @@ function AppContent() {
           {currentView === 'cloud-backup'    && <CloudBackup onBack={() => setCurrentView('dashboard')} />}
           {currentView === 'accountant'      && <AccountantView onBack={() => setCurrentView('dashboard')} />}
           {currentView === 'trust'           && <TrustView onBack={() => setCurrentView('settings')} onOpenBackup={() => setCurrentView('cloud-backup')} />}
+          {currentView === 'privacy'         && <PrivacySettings onBack={() => setCurrentView('settings')} onNavigate={setCurrentView} />}
+          {currentView === 'left-phone'      && <LeftMyPhone onBack={() => setCurrentView('privacy')} />}
+          {currentView === 'recovery-check'  && <RecoveryCheckView onBack={() => setCurrentView('dashboard')} />}
         </main>
 
         <Navigation currentView={currentView} onNavigate={setCurrentView} />

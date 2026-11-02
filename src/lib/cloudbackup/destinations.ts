@@ -24,6 +24,7 @@
  * re-prompting while the cloud only ever sees ciphertext.
  */
 
+import { recordLeft } from "../privacy/store";
 import { db } from "../db";
 import { encryptTextPayload, decryptTextPayload } from "../crypto";
 import { downloadFile } from "../backup";
@@ -114,10 +115,12 @@ export async function runBackup(): Promise<string> {
 
   if (dest.kind === "device") {
     downloadFile(blob, `ledgerjack-backup-${stamp()}.ljbackup`, "application/json");
+    void recordLeft("backup", "a file on this device", true);
     return "Encrypted backup downloaded. Save it to your cloud drive or a safe place.";
   }
   if (dest.kind === "webdav") {
     await putWebdav(dest, dest.webdavUser ?? "", secrets.webdavPassword ?? "", blob);
+    void recordLeft("backup", "your own server (WebDAV)", true);
     return "Encrypted backup uploaded to your WebDAV server.";
   }
   throw new Error("Unknown backup destination.");

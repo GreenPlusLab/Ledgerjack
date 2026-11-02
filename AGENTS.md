@@ -45,6 +45,13 @@ Stack: React 18, TypeScript, Vite, Tailwind, Dexie, Vitest.
    - AI never states, works out or reminds anyone of a deadline. Current AI
      models miss consequential tax deadlines (Surge AI, "DAYJOB: Tax", October
      2026: https://surgehq.ai/blog/dayjob-tax).
+9. **Every AI request goes through `callAI` in `src/lib/ai/gateway.ts`.** It
+   applies the person's privacy choice, "Read just this one", free models, the
+   monthly limit, usage tracking and "What left my phone". Never call an AI
+   service any other way. Anything else that sends data off the device records
+   it with `recordLeft` (`src/lib/privacy/store.ts`).
+10. **Privacy choices are in `docs/PRIVACY-CHOICES.md`.** Colours always come
+   with an icon and words; red is only for risk of losing the books.
 
 ## How to verify your work
 

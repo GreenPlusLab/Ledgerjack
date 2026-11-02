@@ -2,8 +2,7 @@ import { makeSimpleSplits } from './ledger';
 import type { DBTransaction, DBSplit } from './db';
 import { TAX_REGIONS, type TaxRegion } from './regions';
 import { parseCurrencyInput } from './currency';
-import { recordUsage } from './ai/aiUsage';
-import { callOpenRouter } from './ai/openrouterClient';
+import { callAI } from './ai/gateway';
 
 export interface AIParserRequest {
   text?: string;
@@ -13,6 +12,8 @@ export interface AIParserRequest {
   /** When true, use gpt-4o for complex/image requests; otherwise gpt-4o-mini */
   useHighQualityModel?: boolean;
   modelId?: string;
+  /** The person tapped "Read just this one with AI" (privacy choice is otherwise off). */
+  justThisOne?: boolean;
 }
 
 export interface LineItem {
@@ -164,10 +165,6 @@ export async function parseWithAI(
 ): Promise<AIParsedTransaction> {
   const { text, apiKey, region } = request;
 
-  if (!apiKey || apiKey.trim() === '') {
-    throw new Error('No API key configured. Please add your OpenRouter API key in Settings.');
-  }
-
   const cfg   = TAX_REGIONS[region];
   const model = selectModel(request);
 
@@ -187,16 +184,20 @@ export async function parseWithAI(
     },
   ];
 
-  const or = await callOpenRouter(model, messages, apiKey, {
+  // The gateway applies the privacy choice, monthly limit, free-model choice,
+  // usage tracking and the "What left my phone" record.
+  const or = await callAI({
+    purpose: 'receipt',
+    model,
+    messages,
+    apiKey: apiKey ?? '',
     maxTokens: model === 'openai/gpt-4o' ? 1500 : 800,
     temperature: 0,
+    justThisOne: request.justThisOne,
+    hasImage: !!request.imageData,
   });
 
   const content = or.content || '';
-
-  // Log usage + real cost for the tracker (never blocks the parse).
-  recordUsage(model, or.promptTokens, or.completionTokens, or.costUSD)
-    .catch(() => { /* best-effort */ });
 
   const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('AI returned invalid response. Please enter manually.');

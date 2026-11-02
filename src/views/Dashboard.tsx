@@ -5,7 +5,7 @@ import { useApp } from '../contexts/AppContext';
 import { formatCurrency } from '../lib/currency';
 import { getCurrentFiscalYear, getFiscalYearRange } from '../lib/regions';
 import Disclaimer from '../components/Disclaimer';
-import BackupReminder from '../components/BackupReminder';
+import HomePrivacyCards from '../components/privacy/HomePrivacyCards';
 import QuickEntry from '../components/QuickEntry';
 import ThisMonthCard from '../components/ThisMonthCard';
 import BudgetHomeCard from '../components/BudgetHomeCard';
@@ -194,7 +194,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
   return (
     <div className="space-y-4 pb-24">
-      <BackupReminder onSetup={() => onNavigate('cloud-backup')} />
+      <HomePrivacyCards onNavigate={(v) => onNavigate(v)} />
 
       <QuickEntry />
       <ThisMonthCard />

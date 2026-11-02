@@ -54,6 +54,10 @@ it and how blocking it is.
 - [ ] **Voice entry** (Web Speech API) on target browsers.
 - [ ] **GPS mileage** foreground tracking on a phone.
 - [ ] **Backup + restore** a real dataset across two devices using the recovery key.
+- [ ] **Text recognition** on real receipt photos on low-cost Android phones and
+      iPhones: speed, accuracy, the one-time download, and offline use after it.
+- [ ] **AI reading** with a real free OpenRouter account and a paid one, including
+      the monthly limit and "Read just this one with AI".
 
 ## D. Owner decisions / fill-ins
 
@@ -74,8 +78,10 @@ it and how blocking it is.
       and whether it covers an individual or needs a company/CIC.
 - [ ] **Competitor comparisons**: check and date any claim about other apps
       before it goes on the website or in marketing.
-- [ ] **"Coming soon" labels**: keep only features with a real plan (see
+- [x] **"Coming soon" labels**: removed where there is no plan (see
       docs/PRIVACY-CHOICES.md section 7).
+- [ ] **Unlocked JSON export** (Settings, Data Management): label it clearly as
+      not locked, or replace it with the locked backup.
 
 ## E. Known limitations to communicate to users (already surfaced in-app)
 

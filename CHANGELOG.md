@@ -6,6 +6,35 @@ are marked **[security]**. This project follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- **Privacy choices** (docs/PRIVACY-CHOICES.md): a short first-run "waiter"
+  that asks four plain questions and recommends one of four ready-made
+  choices (Private and safe, Fully private, Most accurate, Easy and free) or
+  "Make my own"; colour labels with icons and words everywhere; Settings,
+  Your privacy choices to change them, with each outside service's terms,
+  dated and sourced.
+- **Text recognition on the phone** for receipts ("Read on this phone", also
+  in Bulk receipts). New runtime dependency `tesseract.js` (Apache-2.0),
+  reason: reading receipts privately and for free without AI. Its files are
+  served from LedgerJack under `/ocr/`, never from another website.
+- **Free online AI** with a free OpenRouter account (free models only), and
+  **Read just this one with AI** for a single receipt when AI is off.
+- **One door for AI**: every AI request goes through `callAI`, which applies
+  the privacy choice and a **monthly AI spending limit**.
+- **What left my phone**: a plain monthly record of AI requests, backups,
+  unlocked exports and shares, and HMRC submissions (never their contents).
+- **Backup health light** on the home screen (green, amber, red) and a
+  **recovery key check** (download, print or password app, then type back two
+  groups) in first run and Settings.
+
+### Changed
+- Build and test tooling upgraded (Vite 8, Vitest 5); production dependency
+  audit clean. **[security]**
+- Removed "Coming soon" promises with no plan: LedgerJack server backup and
+  auto-sync, the live accountant link, the live bank feed.
+
+### Fixed
+- The last backup time is now loaded at start-up, so the home screen no longer
+  says "no backup" after every restart.
 - **Check my books** screen (Dashboard): looks through this tax year's entries
   for possible duplicates (including a scanned receipt and the same bank line),
   unusual amounts (a misplaced decimal point or an extra zero), dates in the

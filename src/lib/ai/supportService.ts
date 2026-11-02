@@ -5,8 +5,7 @@
 
 import { HELP_GUIDE } from "./helpGuide";
 import { SCANNING_DEFAULT } from "./aiModels";
-import { callOpenRouter } from "./openrouterClient";
-import { recordUsage } from "./aiUsage";
+import { callAI } from "./gateway";
 
 export interface SupportTurn {
   role: "user" | "assistant";
@@ -40,8 +39,7 @@ export async function askSupport(
     { role: "user" as const, content: question },
   ];
 
-  const or = await callOpenRouter(model, messages, apiKey, { maxTokens: 500, temperature: 0.2 });
-  recordUsage(model, or.promptTokens, or.completionTokens, or.costUSD).catch(() => { /* best-effort */ });
+  const or = await callAI({ purpose: "question", model, messages, apiKey, maxTokens: 500, temperature: 0.2 });
 
   return or.content.trim() || "Sorry, I didn't catch that — try rephrasing.";
 }

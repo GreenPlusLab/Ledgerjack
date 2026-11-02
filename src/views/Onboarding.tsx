@@ -5,6 +5,12 @@ import { useCrypto } from '../contexts/CryptoContext';
 import { COUNTRY_REGIONS, TAX_REGIONS, detectRegionFromBrowser, getFlagEmoji, type TaxRegionConfig } from '../lib/regions';
 import { db, requestStoragePersistence } from '../lib/db';
 import { APP_MOTTO } from '../lib/brand';
+import RecoveryKeyCheck from '../components/privacy/RecoveryKeyCheck';
+import Waiter from '../components/privacy/Waiter';
+import { saveChoice } from '../lib/privacy/store';
+import { recoveryFileBody } from '../lib/privacy/recoverySheet';
+import { downloadFile } from '../lib/backup';
+import type { PrivacyChoice } from '../lib/privacy/choices';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -303,20 +309,7 @@ function GradientButton({
 }
 
 function downloadRecoveryKeyFile(mdkBase64: string) {
-  const payload = {
-    app: 'LedgerJack',
-    date: new Date().toISOString().slice(0, 10),
-    recovery_key: mdkBase64,
-    notice: 'This file contains your Master Data Key. Store it somewhere safe — it is the only way to recover your data if you forget your password.',
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `LedgerJack_Recovery_Key_${new Date().toISOString().slice(0, 10)}.json`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(link.href);
+  downloadFile(recoveryFileBody(mdkBase64), `ledgerjack-recovery-key-${new Date().toISOString().slice(0, 10)}.txt`, 'text/plain');
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
@@ -333,6 +326,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [recoveryKey, setRecoveryKey] = useState<string | null>(null);
 
   const { setRegion: saveRegion } = useApp();
   const { initializeVault } = useCrypto();
@@ -376,8 +370,13 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     setError('');
     setLoading(true);
     try {
-      const recoveryKey = await initializeVault(password);
-      downloadRecoveryKeyFile(recoveryKey);
+      const key = await initializeVault(password);
+      // Safety net: a copy is downloaded straight away, then the next step
+      // offers print / password app and checks the person really kept it.
+      downloadRecoveryKeyFile(key);
+      setRecoveryKey(key);
+      setPassword('');
+      setConfirmPassword('');
       setStep(2);
     } catch {
       setError('Vault initialization failed. Please try again.');
@@ -388,7 +387,17 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
   const handleSkipVault = () => {
     setError('');
-    setStep(2);
+    setStep(3);
+  };
+
+  const handleKeyChecked = () => {
+    setRecoveryKey(null); // don't keep the key in memory longer than needed
+    setStep(3);
+  };
+
+  const handleChoice = async (c: PrivacyChoice) => {
+    await saveChoice(c);
+    setStep(4);
   };
 
   const handleComplete = () => {
@@ -398,7 +407,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
   if (booting) return <VaultAnimation onDone={handleBootDone} />;
 
-  const TOTAL_STEPS = 3;
+  const TOTAL_STEPS = 5;
 
   return (
     <div className={`min-h-screen flex items-center justify-center p-4 relative transition-opacity duration-500 ${completing ? 'opacity-0' : 'opacity-100'}`}>
@@ -494,7 +503,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-slate-900 tracking-tight">Secure your ledger</h2>
-                    <p className="text-slate-500 text-sm mt-0.5">Set a password to encrypt your data with AES-256 locally. A recovery key file will download automatically.</p>
+                    <p className="text-slate-500 text-sm mt-0.5">Set a password to lock your data on this phone. You'll get a recovery key next, in case you forget it.</p>
                   </div>
                 </div>
 
@@ -552,7 +561,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   icon={!loading ? <Download className="w-4 h-4" /> : undefined}
                   className="w-full"
                 >
-                  {loading ? 'Generating key envelope…' : 'Initialize & Download Recovery Key'}
+                  {loading ? 'Locking your ledger…' : 'Lock my ledger'}
                 </GradientButton>
 
                 <button
@@ -565,8 +574,24 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               </div>
             )}
 
-            {/* ── Step 2: Done ── */}
-            {step === 2 && (
+            {/* ── Step 2: Save and check the recovery key ── */}
+            {step === 2 && recoveryKey && (
+              <div className="space-y-3">
+                <p className="text-xs text-brand-700 font-medium">A copy of your recovery key has been downloaded to this device.</p>
+                <RecoveryKeyCheck recoveryKey={recoveryKey} onDone={handleKeyChecked} />
+              </div>
+            )}
+
+            {/* ── Step 3: The waiter: how LedgerJack should work for you ── */}
+            {step === 3 && (
+              <div className="space-y-3">
+                <p className="text-xs font-semibold text-brand-700">A few quick questions so LedgerJack works the way you want. You can change your answers any time.</p>
+                <Waiter onChoose={handleChoice} />
+              </div>
+            )}
+
+            {/* ── Step 4: Done ── */}
+            {step === 4 && (
               <div className="space-y-6 text-center">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center justify-center">

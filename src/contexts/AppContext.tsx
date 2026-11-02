@@ -124,6 +124,7 @@ export function AppProvider({ children, crypto }: AppProviderProps) {
       const savedAuditLog     = await db.settings.get('export_audit_log');
       const savedAuditEntries = await db.settings.get('export_audit_entries');
       const savedAiModel      = await db.settings.get('ai_model');
+      const savedLastBackup   = await db.settings.get('last_backup_timestamp');
       const apiKey            = await loadApiKey();
 
       setSettings((prev) => ({
@@ -135,6 +136,7 @@ export function AppProvider({ children, crypto }: AppProviderProps) {
           ? JSON.parse(savedAuditEntries.value)
           : prev.exportAuditEntries,
         aiModel: (savedAiModel?.value as AIModelPreference) || prev.aiModel,
+        lastBackupTimestamp: savedLastBackup ? (Number.parseInt(savedLastBackup.value, 10) || null) : prev.lastBackupTimestamp,
       }));
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps

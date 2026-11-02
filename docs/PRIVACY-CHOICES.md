@@ -140,18 +140,30 @@ protecting the recovery key (5), then the waiter and the colours.
   with funding, a data protection assessment and someone to run it. A UK/EU
   host with no-storage, no-training terms could be a cheaper first step.
 
-## 7. What already exists (start here when building)
+## 7. What is built (November 2026)
 
-| Agreed feature | Existing code to build on |
+All of sections 1 to 5 is built and tested, except where noted. Start here.
+
+| Feature | Where |
 | --- | --- |
-| Backup health light | `src/components/BackupReminder.tsx` (strong reminder until first backup, gentle after a week); `OffDeviceCopyCard.tsx` |
-| Protect the recovery key | `src/components/RecoveryKeyBackup.tsx` (download / share, password-gated); add print and the "type back two words" check |
-| AI spending cap | `src/components/AICostCard.tsx`, `src/lib/ai/aiUsage.ts` (costs already tracked) |
-| Backup options | `src/lib/cloudbackup/destinations.ts` (device, WebDAV, "server" coming soon), `src/views/CloudBackup.tsx` |
-| AI with your own account | `src/components/AISettingsPanel.tsx`, `src/lib/ai/*` |
-| The waiter | `src/views/Onboarding.tsx` (first-run flow) |
-| Text recognition (OCR) | Not built. Needs a recorded decision for a new dependency (rule 7), bundled language data so it works offline, and tests with real receipt photos. |
-| Free online AI, choose per receipt, "What left my phone", data-saver, re-ask on terms change | Not built. |
+| Options, ready-made choices, colours, the waiter's rules | `src/lib/privacy/choices.ts` (pure, tested in `tests/privacy.test.ts`) |
+| The waiter | `src/components/privacy/Waiter.tsx`; in first run (`src/views/Onboarding.tsx`) and Settings, Your privacy choices (`src/views/PrivacySettings.tsx`) |
+| Colour labels | `src/components/privacy/PrivacyBadge.tsx` (always icon + words) |
+| Backup health light | `src/lib/privacy/health.ts`, `src/components/privacy/HomePrivacyCards.tsx`; the last backup time is now loaded at start-up (it wasn't before, so the old reminder always said "never backed up" after a restart) |
+| Protect the recovery key | `src/components/privacy/RecoveryKeyCheck.tsx` (download, print, password app, then type back two groups with the key hidden); in first run and `src/views/RecoveryCheckView.tsx`; home-screen reminder until checked |
+| What left my phone | `src/lib/privacy/leftPhone.ts`, `src/views/LeftMyPhone.tsx`; recorded for AI requests, backups, unlocked exports and shares, and HMRC submissions |
+| Every AI request through one door | `src/lib/ai/gateway.ts` + `src/lib/ai/policy.ts` (tested in `tests/aiPolicy.test.ts`): privacy choice, "Read just this one with AI", free models, monthly limit, usage and the left-phone record |
+| Free online AI | Free models with a free OpenRouter account, picked from OpenRouter's public list (`pickFreeModel`). Google's Gemini free tier is deliberately not offered: its terms say not to send personal information to the free tier (see `src/lib/privacy/terms.ts`) |
+| AI spending cap | Settings, Your privacy choices, Monthly AI limit (US dollars, as AI companies bill) |
+| Service terms and re-ask | `src/lib/privacy/terms.ts` (dated, with sources); bump `version` when a service changes and people who chose it are asked again |
+| Text recognition on the phone | Tesseract (`tesseract.js`, Apache-2.0), files served from LedgerJack under `/ocr/` (see `vite.config.ts`), about 7 MB downloaded once after asking, cached for offline use. `src/lib/ocr/ocr.ts`; receipt text to suggested fields in `src/lib/ocr/receiptText.ts` (tested in `tests/receiptText.test.ts`). On the entry screen ("Read on this phone") and in Bulk receipts |
+| Data saver | In the waiter and Settings; text recognition works offline; Wi-Fi hints for backups and the one-time download |
+| "Coming soon" labels | Removed where there is no plan: LedgerJack server backup and auto-sync, the live accountant link, and the live bank feed |
 
-Every feature needs tests (`npm test`), and the existing "Coming soon" labels
-should be reviewed at the same time.
+Still to do (good student tasks):
+- Test text recognition with many real receipt photos on low-cost phones;
+  improve `receiptText.ts` with what fails (crumpled, faded, long receipts).
+- Test AI reading with a real free OpenRouter account and a paid one.
+- Accessibility check of the new screens (screen readers, contrast in dark mode).
+- The plain JSON export in Settings, Data Management is not locked; label it
+  clearly or replace it with the locked backup.

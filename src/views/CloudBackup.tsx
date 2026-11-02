@@ -15,6 +15,7 @@ import { getLastBackupTimestamp, readFileAsText, downloadFile } from "../lib/bac
 import { nativeShareFile } from "../lib/share/share";
 import { Mail } from "lucide-react";
 import RecoveryKeyBackup from "../components/RecoveryKeyBackup";
+import { recordLeft } from "../lib/privacy/store";
 import OffDeviceCopyCard from "../components/OffDeviceCopyCard";
 import EncryptAtRestCard from "../components/EncryptAtRestCard";
 
@@ -109,21 +110,9 @@ export default function CloudBackup({ onBack }: { onBack: () => void }) {
       {/* Destination */}
       <div className="space-y-2">
         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Where your data lives — your choice</p>
-        <p className="text-[11px] text-slate-500 -mt-1">A file you keep, a cloud you run yourself, or our encrypted server later. It's always end-to-end encrypted, so only you can read it.</p>
-        {opt("server", "LedgerJack encrypted server (auto-sync)", <ShieldCheck className="w-5 h-5 text-slate-500" />, true)}
+        <p className="text-[11px] text-slate-500 -mt-1">A locked file you keep (save it to your cloud, computer or USB through the Share menu), or a server you run yourself. Only you can open it.</p>
         {opt("device", "Encrypted file (save anywhere)", <HardDriveDownload className="w-5 h-5 text-slate-500" />)}
         {opt("webdav", "Your Nextcloud / WebDAV server", <Server className="w-5 h-5 text-slate-500" />)}
-      </div>
-
-      <div className="bg-white rounded-xl border border-line p-3 flex items-start gap-2">
-        <ShieldCheck className="w-4 h-4 text-ink-soft mt-0.5" />
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-slate-900">Automatic cloud sync</span>
-            <span className="text-[10px] font-bold uppercase text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">Coming soon</span>
-          </div>
-          <p className="text-xs text-slate-500 mt-1">Sync your books across devices with automatic, end-to-end-encrypted backup — no manual step. The server only ever sees encrypted data.</p>
-        </div>
       </div>
 
       {kind === "webdav" && (
@@ -175,6 +164,9 @@ export default function CloudBackup({ onBack }: { onBack: () => void }) {
             const blob = await exportEncryptedBackup(passphrase);
             const filename = `ledgerjack-backup-${new Date().toISOString().slice(0,10)}.ljenc`;
             const shared = await nativeShareFile(filename, blob, "application/octet-stream");
+            void recordLeft("backup", shared ? "your Share menu" : "a file on this device", true);
+            updateBackupTimestamp();
+            setLast(await getLastBackupTimestamp());
             if (shared) {
               setMsg({ ok: true, text: "Pick your email app and send it to yourself. Keep your recovery key/passphrase safe — you'll need it to restore." });
             } else {
