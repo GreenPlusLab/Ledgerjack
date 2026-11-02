@@ -1,0 +1,49 @@
+name: Working-branch results (temporary)
+
+# TEMPORARY. Used while building on claude/* branches from an environment that
+# cannot run npm or read check results. Runs the same steps as CI and saves the
+# output back to the branch as .claude-results/latest.txt. Remove before merge.
+on:
+  push:
+    branches: ["claude/**"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: claude-results-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  results:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[results]') }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.ref }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - name: Run checks and record output
+        run: |
+          set +e
+          mkdir -p .claude-results
+          out=.claude-results/latest.txt
+          {
+            echo "commit: ${GITHUB_SHA}"
+            echo "=== npm ci"; npm ci --no-audit --no-fund 2>&1 | tail -40; echo "exit: ${PIPESTATUS[0]}"
+            echo "=== typecheck"; npm run typecheck 2>&1 | tail -80; echo "exit: ${PIPESTATUS[0]}"
+            echo "=== lint (report only)"; npm run lint 2>&1 | tail -15; echo "exit: ${PIPESTATUS[0]}"
+            echo "=== test"; npx vitest run --reporter=dot 2>&1 | tail -120; echo "exit: ${PIPESTATUS[0]}"
+            echo "=== build"; npm run build 2>&1 | tail -40; echo "exit: ${PIPESTATUS[0]}"
+            echo "=== audit (production)"; npm audit --omit=dev 2>&1 | tail -40
+            echo "=== audit (all)"; npm audit 2>&1 | tail -15
+          } > "$out"
+      - name: Save results to the branch
+        run: |
+          git config user.name "results-bot"
+          git config user.email "results-bot@users.noreply.github.com"
+          git add -f .claude-results/latest.txt
+          git commit -m "[results] ${GITHUB_SHA::7}" || exit 0
+          for i in 1 2 3; do git pull --rebase -q origin "${GITHUB_REF_NAME}" && git push -q origin "HEAD:${GITHUB_REF_NAME}" && break; sleep 5; done
