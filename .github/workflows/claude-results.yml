@@ -2,7 +2,8 @@ name: Working-branch results (temporary)
 
 # TEMPORARY. Used while building on claude/* branches from an environment that
 # cannot run npm or read check results. Runs the same steps as CI and saves the
-# output back to the branch as .claude-results/latest.txt. Remove before merge.
+# output (and any file changes made by .claude-results/run.sh, as a patch) to a
+# separate branch, results/<branch>. Never fails, to avoid noise. Remove before merge.
 on:
   push:
     branches: ["claude/**"]
@@ -17,40 +18,41 @@ concurrency:
 jobs:
   results:
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.head_commit.message, '[results]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.ref }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
       - name: Run checks and record output
+        continue-on-error: true
         shell: bash {0}
         run: |
-          set +e
-          mkdir -p .claude-results
-          out=.claude-results/latest.txt
+          out="$RUNNER_TEMP/latest.txt"
           {
             echo "commit: ${GITHUB_SHA}"
             echo "=== npm ci"; npm ci --no-audit --no-fund 2>&1 | tail -40; echo "exit: ${PIPESTATUS[0]}"
             if [ -f .claude-results/run.sh ]; then
-              echo "=== run.sh"; bash .claude-results/run.sh 2>&1 | tail -150; echo "exit: ${PIPESTATUS[0]}"
-              git rm -q --cached .claude-results/run.sh 2>/dev/null; rm -f .claude-results/run.sh
+              echo "=== run.sh"; bash .claude-results/run.sh 2>&1 | tail -200; echo "exit: ${PIPESTATUS[0]}"
             fi
             echo "=== typecheck"; npm run typecheck 2>&1 | tail -80; echo "exit: ${PIPESTATUS[0]}"
             echo "=== lint (report only)"; npm run lint 2>&1 | tail -15; echo "exit: ${PIPESTATUS[0]}"
-            echo "=== test"; npx vitest run --reporter=dot 2>&1 | tail -120; echo "exit: ${PIPESTATUS[0]}"
-            echo "=== build"; npm run build 2>&1 | tail -40; echo "exit: ${PIPESTATUS[0]}"
-            echo "=== audit (production)"; npm audit --omit=dev 2>&1 | tail -40
-            echo "=== audit (all)"; npm audit 2>&1 | tail -15
-          } > "$out"
-      - name: Save results to the branch
+            echo "=== test"; npx vitest run 2>&1 | grep -v "^ *✓" | tail -150; echo "exit: ${PIPESTATUS[0]}"
+            echo "=== build"; npm run build 2>&1 | tail -30; echo "exit: ${PIPESTATUS[0]}"
+            echo "=== audit (production)"; npm audit --omit=dev 2>&1 | tail -30
+            echo "=== audit (all)"; npm audit 2>&1 | tail -6
+          } > "$out" 2>&1
+          git diff --binary -- . ':!.claude-results' > "$RUNNER_TEMP/changes.patch"
+      - name: Save results to results/<branch>
         if: always()
+        continue-on-error: true
+        shell: bash {0}
+        env:
+          TOKEN: ${{ github.token }}
         run: |
-          git config user.name "results-bot"
-          git config user.email "results-bot@users.noreply.github.com"
-          git add -A -- . ':!node_modules' ':!dist'
-          git add -f .claude-results/latest.txt
-          git commit -m "[results] ${GITHUB_SHA::7}" || exit 0
-          for i in 1 2 3; do git pull --rebase -q origin "${GITHUB_REF_NAME}" && git push -q origin "HEAD:${GITHUB_REF_NAME}" && break; sleep 5; done
+          mkdir -p "$RUNNER_TEMP/out" && cd "$RUNNER_TEMP/out"
+          cp ../latest.txt . 2>/dev/null || echo "no results file (checks step crashed)" > latest.txt
+          cp ../changes.patch . 2>/dev/null || true
+          git init -q && git checkout -q -b r
+          git -c user.name=results-bot -c user.email=results-bot@users.noreply.github.com add .
+          git -c user.name=results-bot -c user.email=results-bot@users.noreply.github.com commit -qm "results ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "r:refs/heads/results/${GITHUB_REF_NAME}" 2>&1 | sed "s/${TOKEN}/***/g"
