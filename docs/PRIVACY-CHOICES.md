@@ -64,7 +64,9 @@ Rules:
 - Overall privacy is set by the weakest part, not an average.
 - "No backup" never appears in a ready-made choice.
 - Every choice states its cost plainly. Everything can be changed in one tap.
-- Suggested first release: choices 1, 2 and 4. Add 3 later.
+- All four ready-made choices ship at launch. People get clear, accurate
+  information about each one and decide for themselves; LedgerJack never
+  hides an option or makes the choice for them.
 
 ## 3. The waiter (first-run questions)
 
@@ -125,7 +127,20 @@ from Settings.
 Launch priorities: the backup health light (3), "What left my phone" (1) and
 protecting the recovery key (5), then the waiter and the colours.
 
-## 6. What already exists (start here when building)
+## 6. Later (agreed, not for the first build)
+
+- **Better reading on the phone:** a small AI model that runs in the browser
+  on the phone, offered only to phones that can handle it, after asking, and
+  downloaded over Wi-Fi only. Colour green. Candidate models (e.g. Florence-2,
+  SmolVLM, Moondream) are tested on real receipts for accuracy, speed and
+  battery before any is offered, and their licences checked. A good student
+  research task, after text recognition is built.
+- **LedgerJack's own AI server, when funded:** open models on a server we
+  control, nothing stored, nothing used for training. Colour green-amber. Only
+  with funding, a data protection assessment and someone to run it. A UK/EU
+  host with no-storage, no-training terms could be a cheaper first step.
+
+## 7. What already exists (start here when building)
 
 | Agreed feature | Existing code to build on |
 | --- | --- |
