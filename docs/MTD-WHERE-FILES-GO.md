@@ -31,16 +31,17 @@ ledgerjack-mtd-supabase/
    - `RELAY_BASE` → replace `<PROJECT_REF>` with your Supabase project ref
      (the same one in your ai-proxy URL).
    - `HMRC_CLIENT_ID` → your sandbox Client ID from the HMRC Developer Hub.
-   - `REDIRECT_URI` → already set to `https://ledgerjack.app/hmrc/callback`;
-     change only if your app domain differs.
+   - `REDIRECT_URI` → already set to `https://ledgerjack.com` (the app's main
+     address; there is no separate callback page).
 2. In the relay (`supabase/functions/hmrc-relay/index.ts`):
    - check the `ALLOWED_ORIGINS` list matches your real app origins.
    - the two secrets (`HMRC_CLIENT_ID`, `HMRC_CLIENT_SECRET`) are NOT in the file —
      you set them with `supabase secrets set` (see START-HERE, Phase 2).
 
-## One route to add
-Wire `/hmrc/callback` in your router to render `HmrcCallback.tsx`, and put
-`ConnectHmrc.tsx` inside your Settings screen (only when `showMTD` is true).
+## Where the screens go
+No route is needed: `src/App.tsx` spots the return from HMRC on the home page
+and shows `HmrcCallback.tsx`. Put `ConnectHmrc.tsx` inside your Settings screen
+(only when `showMTD` is true).
 
 Nothing here overwrites your existing files — every item is either a brand-new
 file or a brand-new folder.

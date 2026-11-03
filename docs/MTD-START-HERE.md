@@ -33,8 +33,12 @@ All on `https://developer.service.hmrc.gov.uk`.
 2. Open it → **Credentials**. Copy the **Client ID** and **Client secret**
    (keep the secret safe — it goes into Supabase in Phase 2, nowhere else).
 3. **Redirect URIs** — add exactly:
-   - `https://ledgerjack.app/hmrc/callback`
-   - `http://localhost:5173/hmrc/callback`  (for local testing)
+   - `https://ledgerjack.com`
+   - `http://localhost:5173`  (for local testing)
+
+   These are the app's main address, with no `/hmrc/callback` on the end:
+   LedgerJack spots the return from HMRC on its home page (see
+   `src/lib/mtd/hmrcConfig.ts`).
 4. **API subscriptions** — subscribe (sandbox) to the Income Tax (MTD) APIs you
    need for a free ITSA product: business details/obligations, self-employment
    and/or property updates, tax calculation, and final declaration. Note each
@@ -73,7 +77,8 @@ All on `https://developer.service.hmrc.gov.uk`.
    - `RELAY_BASE` → replace `<PROJECT_REF>` with your Supabase project ref
    - `HMRC_CLIENT_ID` → your sandbox Client ID
    - confirm `SCOPES` and `REDIRECT_URI`
-3. Add a route `/hmrc/callback` that renders `HmrcCallback.tsx`.
+3. Already done: `src/App.tsx` spots the return from HMRC on the home page
+   (`?code` plus the saved `state`) and shows `HmrcCallback.tsx`. No route needed.
 4. Put `<ConnectHmrc />` inside your Settings screen, shown only when `showMTD`
    is true (consistent with Session 00g).
 5. For the actual MTD screens (obligations, quarterly update, calculation, final

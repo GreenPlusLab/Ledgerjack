@@ -6,6 +6,12 @@ are marked **[security]**. This project follows Semantic Versioning.
 ## [Unreleased]
 
 ### Changed
+- The project's web address is now `ledgerjack.com` (HMRC return address, AI
+  referer and the server helpers' allow-lists). The HMRC set-up guides now
+  match how the app works: HMRC returns to the home page, with no separate
+  callback route.
+- New dev dependency `fast-check` (MIT), reason: random-input ("property")
+  tests for the money maths in `tests/moneyProperties.test.ts`.
 - Settings, Data Management: **Make a locked backup** is now the main button.
   The plain backup file moved under "Other: a partly locked copy for this
   device", says exactly what anyone could read in it, and no longer turns the
@@ -35,6 +41,8 @@ are marked **[security]**. This project follows Semantic Versioning.
   checked in Review.
 
 ### Fixed
+- A typed amount too large to hold exactly in pence is now treated as invalid
+  instead of being saved inexactly.
 - A receipt with no readable date was quietly given today's date (AI and text
   recognition). The date now stays empty, is flagged, and must be filled in
   before the entry can be approved.

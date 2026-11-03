@@ -37,7 +37,7 @@ export async function callOpenRouter(
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
       // Optional attribution headers (safe to send).
-      "HTTP-Referer": "https://ledgerjack.app",
+      "HTTP-Referer": "https://ledgerjack.com",
       "X-Title": "LedgerJack",
     },
     body: JSON.stringify({
