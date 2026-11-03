@@ -38,7 +38,7 @@ removed; every change is additive. Here is the complete list.
 3. Confirm `SCOPES` match what you subscribe to on the HMRC Developer Hub.
 
 Then follow `docs/MTD-START-HERE.md` (deploy the relay, register the redirect
-URIs `https://ledgerjack.app` and `http://localhost:5173`, test in sandbox).
+URIs `https://ledgerjack.com` and `http://localhost:5173`, test in sandbox).
 
 ## Nothing runs against real HMRC yet
 `HMRC_ENV` is `sandbox` everywhere. The UK-only Connect button appears in

@@ -7,7 +7,7 @@
  * Flow:
  *  - tap Connect -> make a PKCE verifier + state, stash them in sessionStorage,
  *    then send the browser to HMRC's authorize page.
- *  - HMRC redirects back to /hmrc/callback (handled by HmrcCallback.tsx).
+ *  - HMRC redirects back to the app's home page; App.tsx spots ?code and shows HmrcCallback.tsx.
  */
 
 import { useEffect, useState } from "react";

@@ -26,8 +26,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // Match your ai-proxy allowlist. Add staging if you use it.
 const ALLOWED_ORIGINS = [
-  "https://ledgerjack.app",
-  "https://www.ledgerjack.app",
+  "https://ledgerjack.com",
+  "https://www.ledgerjack.com",
   "http://localhost:5173",
 ];
 

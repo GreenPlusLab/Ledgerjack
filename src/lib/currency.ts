@@ -17,7 +17,9 @@ export function parseCurrencyInput(input: string): number {
   const cleaned = input.replace(/[^0-9.-]/g, '');
   const float = parseFloat(cleaned);
   if (isNaN(float)) return 0;
-  return Math.round(float * 100);
+  const minor = Math.round(float * 100);
+  // A figure too big to hold exactly in pence is treated as not a valid amount.
+  return Number.isSafeInteger(minor) ? minor : 0;
 }
 
 export function formatInputValue(amount: number): string {

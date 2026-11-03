@@ -13,9 +13,9 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // FIX #7 — update this list to match your actual production domain(s)
 const ALLOWED_ORIGINS = [
-  "https://ledgerjack.app",
-  "https://www.ledgerjack.app",
-  // Add staging: "https://staging.ledgerjack.app",
+  "https://ledgerjack.com",
+  "https://www.ledgerjack.com",
+  // Add staging: "https://staging.ledgerjack.com",
 ];
 
 function getCorsHeaders(requestOrigin: string | null): Record<string, string> {

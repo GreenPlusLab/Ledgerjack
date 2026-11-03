@@ -60,11 +60,19 @@ it and how blocking it is.
 
 - [x] **Licence**: AGPL-3.0-or-later chosen and full text in `LICENSE`
       (see LICENSE-DECISION.md).
-- [ ] **Copyright notice**: decide the name to show as copyright holder.
+- [ ] **Copyright notice**: decide the name to show as copyright holder
+      (copyright itself is automatic and free in the UK; this is just the
+      line saying who owns it).
+- [ ] **Trade mark**: register "LedgerJack" with the UK Intellectual Property
+      Office before launch or publicity (class 9, software; consider class 42
+      too). Fees from 1 April 2026: £205 online for one class, £60 per extra
+      class. Check the fee on GOV.UK when filing.
 - [x] **Contacts**: security reports go through GitHub private reporting
       (SECURITY.md); conduct and support use the project contact address.
-- [ ] **Web address**: replace `ledgerjack.app` (HMRC redirect, AI referer,
-      server allow-lists) with the project's real domain.
+- [x] **Web address**: the project owns `ledgerjack.com`; the HMRC redirect,
+      AI referer and server allow-lists use it. Still to do at launch: host the
+      app there, and register `https://ledgerjack.com` as the redirect URI on
+      the HMRC Developer Hub.
 - [ ] **Supporter tier**: paste your own payment links in `src/lib/supportConfig.ts`.
 - [ ] **Business/brand**: confirm the motto and app name usage.
 - [ ] **Privacy policy and website**: explain, for each choice in

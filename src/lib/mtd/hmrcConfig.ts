@@ -31,9 +31,9 @@ export const HMRC_CLIENT_ID = "REPLACE_WITH_YOUR_SANDBOX_CLIENT_ID";
 // We use the app ROOT (not a /path) because LedgerJack has no router — the
 // return is detected by the presence of ?code plus a matching saved state.
 // Register BOTH of these on the Dev Hub:
-//   https://ledgerjack.app        (production)
+//   https://ledgerjack.com        (production)
 //   http://localhost:5173         (local testing)
-export const REDIRECT_URI = "https://ledgerjack.app";
+export const REDIRECT_URI = "https://ledgerjack.com";
 
 // Confirm exact scope strings against the APIs you subscribe to on the Dev Hub.
 export const SCOPES = ["read:self-assessment", "write:self-assessment"];
