@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import {
-  Shield, Download, Upload, Trash2, FileText, Clock, Globe, Key, AlertTriangle, CheckCircle2, LifeBuoy, BarChart2, Briefcase, FolderOpen, BookOpen, Car, Calculator, PiggyBank, Activity,
+  Shield, Lock, Download, Upload, Trash2, FileText, Clock, Globe, Key, AlertTriangle, CheckCircle2, LifeBuoy, BarChart2, Briefcase, FolderOpen, BookOpen, Car, Calculator, PiggyBank, Activity,
 } from 'lucide-react';
 import TipJar from '../components/TipJar';
 import AISettingsPanel from '../components/AISettingsPanel';
@@ -57,7 +57,7 @@ export default function Settings({ onNavigate }: { onNavigate?: (view: View) => 
   const {
     region, setRegion,
     exportAuditLog, toggleExportAuditLog,
-    exportAuditEntries, addExportAuditEntry, updateBackupTimestamp,
+    exportAuditEntries, addExportAuditEntry,
   } = useApp();
   const { changePassword, initializeVault, hasVault, verifyPassword } = useCrypto();
 
@@ -123,10 +123,10 @@ export default function Settings({ onNavigate }: { onNavigate?: (view: View) => 
       const json = await exportBackup();
       downloadFile(json, `ledgerjack-backup-${new Date().toISOString().split('T')[0]}.json`, 'application/json');
       void recordLeft('export', 'a file on this device', false);
-      updateBackupTimestamp();
+      // Not counted as a backup: it stays on this device and isn't fully locked.
       addExportAuditEntry('backup');
-      setExportMsg('Backup saved. Keep a copy off this device too — see Backup & security.');
-      setTimeout(() => setExportMsg(''), 3000);
+      setExportMsg("Saved. This copy doesn't count as your backup. For that, make a locked backup.");
+      setTimeout(() => setExportMsg(''), 6000);
     } catch {
       setExportMsg('Export failed.');
     }
@@ -640,19 +640,37 @@ export default function Settings({ onNavigate }: { onNavigate?: (view: View) => 
         </div>
 
         <button
-          onClick={handleExportBackup}
-          className="w-full bg-slate-100 border border-line text-slate-700 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-200 flex items-center justify-center gap-1.5"
+          onClick={() => onNavigate?.('cloud-backup')}
+          className="w-full bg-brand-600 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-brand-700 flex items-center justify-center gap-1.5"
         >
-          <Download className="w-4 h-4" /> Export Backup File
+          <Lock className="w-4 h-4" /> Make a locked backup
         </button>
+        <p className="text-[11px] text-slate-600 leading-relaxed -mt-1">
+          Locked with a passphrase, so it's safe to keep in Google Drive, OneDrive, iCloud or email. This is the backup that counts.
+        </p>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <p className="text-[11px] text-amber-800 leading-relaxed">
-            <strong>This file is only partly protected.</strong> Your descriptions, amounts and receipts are encrypted inside it, but notes, category names and mileage logs are readable by anyone who opens it. It's fine on a device you control.{' '}
-            <strong>For a copy you put in a cloud drive or email, use the passphrase-encrypted backup</strong> in Backup &amp; security instead — that one is unreadable without your passphrase.
-          </p>
-        </div>
+        <details className="border border-line rounded-lg">
+          <summary className="px-3 py-2 text-xs font-bold text-slate-700 cursor-pointer">Other: a partly locked copy for this device</summary>
+          <div className="px-3 pb-3 space-y-2">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
+              <p className="text-[11px] text-amber-900 leading-relaxed">
+                {hasVault ? (
+                  <><strong>Not fully locked.</strong> Descriptions, amounts and receipt photos are locked inside it, but dates, categories, job names, notes and mileage can be read by anyone who opens the file.</>
+                ) : (
+                  <><strong>Not locked at all.</strong> Your books aren't locked with a password yet, so everything in this file can be read by anyone who opens it.</>
+                )}{' '}
+                Keep it on a device only you use. Don't email it or put it in a cloud drive. It doesn't count as your backup.
+              </p>
+            </div>
+            <button
+              onClick={handleExportBackup}
+              className="w-full bg-slate-100 border border-line text-slate-700 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-200 flex items-center justify-center gap-1.5"
+            >
+              <Download className="w-4 h-4" /> Save a partly locked copy
+            </button>
+          </div>
+        </details>
 
         <button
           onClick={() => backupInputRef.current?.click()}
@@ -832,9 +850,9 @@ export default function Settings({ onNavigate }: { onNavigate?: (view: View) => 
           <h3 className="font-bold text-slate-900">Legal & Data Controller</h3>
         </div>
         <div className="p-3 bg-slate-50 border border-line rounded-lg text-[11px] text-slate-500 space-y-1.5 max-h-24 overflow-y-auto leading-relaxed font-medium">
-          <p><strong>1. Decentralised Execution:</strong> All ledger summaries are compiled strictly browser-side. No financial data leaves your device.</p>
+          <p><strong>1. On your device:</strong> Your books are kept and worked out on this device. Data leaves it only when you choose (AI reading, backups, sharing, HMRC submissions), and each time is recorded in What left my phone.</p>
           <p><strong>2. Data Controller Assignment:</strong> You are the sole designated Data Controller for all data stored here, in accordance with applicable privacy frameworks.</p>
-          <p><strong>3. Encryption:</strong> Data is encrypted locally via client-side AES-GCM keys derived from your password. LedgerJack holds no copy of your key.</p>
+          <p><strong>3. Encryption:</strong> When your books are locked with a password, descriptions, amounts and receipt photos are encrypted on this device (AES-GCM, with a key made from your password). Dates and category names are not. LedgerJack never has your password or key.</p>
         </div>
       </div>
 

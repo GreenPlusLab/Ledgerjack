@@ -37,7 +37,7 @@ export default function RecoveryKeyCheck({ recoveryKey, onDone, allowLater = tru
   const print = () => { if (printRecoverySheet(recoveryKey)) { setSaved(true); setMsg("Print the sheet and keep it somewhere safe."); } else setMsg("Your browser blocked the print window. Allow pop-ups for LedgerJack, or download the key instead."); };
   const share = async () => {
     const ok = await nativeShareFile(filename, recoveryFileBody(recoveryKey), "text/plain");
-    if (ok) { setSaved(true); setMsg("Save it to a password manager or email it to yourself, kept apart from your backup."); }
+    if (ok) { setSaved(true); setMsg("Save it in a password manager. Keep it apart from your backup: not in the same account (for example, not in Gmail if your backup is in Google Drive)."); }
     else download();
   };
 

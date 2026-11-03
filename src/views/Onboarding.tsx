@@ -618,8 +618,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
         {/* Disclaimer */}
         <p className="text-center text-ink-soft text-[10px] mt-4 px-4 leading-relaxed">
-          LedgerJack is a pre-accounting organization utility only and does not provide certified professional tax advice.
-          Data is encrypted locally and is the user's sole responsibility.
+          LedgerJack organises your records. It doesn't give tax advice. Your records are kept on this device, and what goes in them is your responsibility.
         </p>
       </div>
     </div>

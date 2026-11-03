@@ -185,9 +185,8 @@ async function exportTaxBundle(
     manifestLines.join('\n'),
     '',
     '--- DISCLAIMER ---',
-    'This tool is a pre-accounting organisation utility only and does not constitute',
-    'certified professional tax advice. All data is encrypted locally and remains the',
-    "user's sole financial liability.",
+    'LedgerJack organises records. It does not give tax advice. The records were',
+    "kept on the user's device, and what goes in them is the user's responsibility.",
   ].join('\n');
 
   downloadFile(
@@ -458,8 +457,7 @@ export default function Reports() {
           </div>
 
           <p className="text-[10px] leading-relaxed text-ink-soft font-medium text-center italic border-t border-line pt-4">
-            This tool is a pre-accounting organisation utility only and does not constitute certified professional tax advice.
-            Data is encrypted locally via client-side browser keys and remains the user's sole financial liability.
+            LedgerJack organises your records. It doesn't give tax advice. Your records are kept on this device, and what goes in them is your responsibility.
           </p>
         </div>
       </div>

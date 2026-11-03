@@ -165,5 +165,3 @@ Still to do (good student tasks):
   improve `receiptText.ts` with what fails (crumpled, faded, long receipts).
 - Test AI reading with a real free OpenRouter account and a paid one.
 - Accessibility check of the new screens (screen readers, contrast in dark mode).
-- The plain JSON export in Settings, Data Management is not locked; label it
-  clearly or replace it with the locked backup.
