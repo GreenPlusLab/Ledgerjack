@@ -25,13 +25,10 @@ it and how blocking it is.
 - [ ] **OpenRouter** model slugs and prices (Opus 4.8, Fable 5, GPT-4o family) —
       verify on openrouter.ai/models.
 - [ ] **CIS** deduction rates (20% / 30% / 0%).
-- [ ] **2026/27 tax-rate tables** (personal allowance + taper, band widths,
-      Class 2/4 NI) in `src/lib/tax/`.
 - [ ] Sandbox-test MTD and VAT submissions end-to-end before enabling production.
-- [ ] **Rule 4 conflict:** `src/lib/tax/ukTaxRates.ts` holds built-in rates and
-      allowances (personal allowance, basic rate, Class 4 NI), which AGENTS.md
-      rule 4 says the app never asserts. Decide: remove the estimator, or have
-      the user enter the figures, or change rule 4 with sources and yearly checks.
+- [x] **Rule 4 conflict:** the built-in tax rates (`ukTaxRates.ts`,
+      `taxEstimator.ts`) were unused by any screen and have been removed. The
+      tax pot uses the person's own percentage; tax figures come from HMRC.
 - [ ] **Autumn Budget 2026** (28 October 2026; check each on GOV.UK):
       trading allowance and the Self Assessment reporting threshold rise from
       £1,000 to £3,000 from 6 April 2027; savings and property income rates
@@ -80,8 +77,10 @@ it and how blocking it is.
       before it goes on the website or in marketing.
 - [x] **"Coming soon" labels**: removed where there is no plan (see
       docs/PRIVACY-CHOICES.md section 7).
-- [ ] **Unlocked JSON export** (Settings, Data Management): label it clearly as
-      not locked, or replace it with the locked backup.
+- [x] **Unlocked JSON export** (Settings, Data Management): the locked backup
+      is now the main button. The plain file is under "Other: a partly locked
+      copy for this device", says exactly what's readable, and no longer counts
+      as a backup for the backup light.
 
 ## E. Known limitations to communicate to users (already surfaced in-app)
 

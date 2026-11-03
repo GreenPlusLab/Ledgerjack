@@ -5,6 +5,23 @@ are marked **[security]**. This project follows Semantic Versioning.
 
 ## [Unreleased]
 
+### Changed
+- Settings, Data Management: **Make a locked backup** is now the main button.
+  The plain backup file moved under "Other: a partly locked copy for this
+  device", says exactly what anyone could read in it, and no longer turns the
+  backup light green (it stays on the same device and isn't fully locked).
+- Wording that promised more than the app does: the disclaimer no longer says
+  all data is encrypted (encryption can be skipped, and dates and categories
+  aren't encrypted); Settings no longer says no data leaves the device; the AI
+  questions note no longer says the AI won't invent numbers; backups are
+  described as locked with the recovery key (not the password); and the
+  recovery key tip no longer suggests emailing it to yourself.
+
+### Removed
+- The unused built-in UK tax-rate tables and estimator (`ukTaxRates.ts`,
+  `taxEstimator.ts`). No screen used them, and they broke the rule that the app
+  never states a tax rate. The tax pot uses the person's own percentage.
+
 ### Added
 - **Full attention required** notice wherever a receipt is read (AI or on the
   phone): every field must be checked against the receipt, and what goes into

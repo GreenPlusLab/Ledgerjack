@@ -213,7 +213,7 @@ export default function Insights({ onBack }: { onBack: () => void }) {
                     {asking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-[10px] text-ink-soft">Answers use only your figures above — the AI won't invent numbers. Each question uses your AI key.</p>
+                <p className="text-[10px] text-ink-soft">Answers use only your figures above, but AI can still get things wrong, so check anything important. Each question uses your AI account.</p>
               </div>
             )}
           </div>

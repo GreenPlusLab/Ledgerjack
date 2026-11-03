@@ -58,7 +58,7 @@ export default function LeftMyPhone({ onBack }: { onBack: () => void }) {
       })}
 
       <p className="text-xs text-slate-500">
-        Kept on this phone for 13 months. The padlock means the item was locked with your password before it left, so only you can open it.
+        Kept on this phone for 13 months. The padlock means the item was locked before it left, so only someone with your recovery key or backup passphrase can open it.
       </p>
     </div>
   );

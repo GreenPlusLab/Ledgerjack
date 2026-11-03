@@ -185,7 +185,8 @@ export async function exportBackup(): Promise<string> {
 
   const envelope: BackupEnvelope = { checksum, version: 2, exported_at: Date.now(), data };
 
-  await db.settings.put({ key: 'last_backup_timestamp', value: Date.now().toString() });
+  // The caller decides whether this counts as a backup (updateBackupTimestamp).
+  // A partly locked copy left on the same device does not.
 
   return JSON.stringify(envelope);
 }

@@ -141,7 +141,7 @@ export const PRESETS: Record<PresetId, Preset> = {
     name: "Private and safe",
     reading: "ocr",
     backup: "cloudShare",
-    summary: "Your receipts are read on your phone, so they never leave it. Your backup is locked with your password and kept in your own cloud, so only you can open it, and you won't lose your books if you lose your phone. It's free.",
+    summary: "Your receipts are read on your phone, so they never leave it. Your backup is locked with your recovery key and kept in your own cloud, so only you can open it, and you won't lose your books if you lose your phone. It's free.",
     goodToKnow: "Reading is less accurate on crumpled receipts, so check each one before saving.",
   },
   easyFree: {
