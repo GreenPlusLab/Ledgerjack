@@ -115,7 +115,7 @@ export function dateFrom(text: string, order: DateOrder): { date?: string; note?
     if (dmy && (order === "DMY" || !mdy)) return { date: iso(y, b, a) };
     if (mdy) return { date: iso(y, a, b) };
   }
-  return { note: "No date was found, so it is left as today. Check it." };
+  return { note: "No date was found. Type the date from the receipt." };
 }
 
 const BOILERPLATE = /receipt|invoice|tel\b|phone|vat\s*(no|reg)|www\.|http|date|time|till|cashier|welcome|thank/i;

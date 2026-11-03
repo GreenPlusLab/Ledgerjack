@@ -6,6 +6,25 @@ are marked **[security]**. This project follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- **Full attention required** notice wherever a receipt is read (AI or on the
+  phone): every field must be checked against the receipt, and what goes into
+  the books is the person's responsibility.
+- **Specific checks on every reading** (`src/lib/ai/readingChecks.ts`), shown
+  in plain words: missing, future or very old dates, missing total or shop,
+  items or suggested parts that don't add up to the total, and the AI's own
+  doubts. Stored with pending entries as codes (no amounts) and shown in
+  Review.
+- Bulk receipts now keep each photo (encrypted) with its entry, so it can be
+  checked in Review.
+
+### Fixed
+- A receipt with no readable date was quietly given today's date (AI and text
+  recognition). The date now stays empty, is flagged, and must be filled in
+  before the entry can be approved.
+- The AI's own confidence and its notes on what it struggled with were being
+  thrown away, so every AI reading showed the same general warning.
+- Restoring a plain backup dropped each entry's trade and "flag for
+  accountant" marks.
 - **Privacy choices** (docs/PRIVACY-CHOICES.md): a short first-run "waiter"
   that asks four plain questions and recommends one of four ready-made
   choices (Private and safe, Fully private, Most accurate, Easy and free) or

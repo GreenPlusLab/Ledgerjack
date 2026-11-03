@@ -52,6 +52,12 @@ Stack: React 18, TypeScript, Vite, Tailwind, Dexie, Vitest.
    it with `recordLeft` (`src/lib/privacy/store.ts`).
 10. **Privacy choices are in `docs/PRIVACY-CHOICES.md`.** Colours always come
    with an icon and words; red is only for risk of losing the books.
+11. **A receipt reading is a suggestion, never a fact.** Never fill in a value
+   the reader did not read (no default dates, totals or names). Show every
+   reading with `FullAttention` and the specific problems from
+   `src/lib/ai/readingChecks.ts`, in plain words. Checks inform; the person
+   decides. An entry with no date or no total cannot be approved until the
+   person fills it in.
 
 ## How to verify your work
 
