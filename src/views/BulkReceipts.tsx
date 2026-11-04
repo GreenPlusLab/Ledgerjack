@@ -95,7 +95,9 @@ export default function BulkReceipts({ onBack }: { onBack: () => void }) {
         // A date that wasn't found stays empty and is flagged; never today's date.
         const flags: ReadingFlag[] = flagsOf(checkReading(
           { date: s.date ?? "", amount: s.totalMinor, description: s.merchant }, today, String));
-        if (s.notes.length > 0) flags.push("unsure-reading");
+        // Notes about the date are already covered by the date flags; anything
+        // else the reader wasn't sure about gets a general "worth a look".
+        if (s.notes.some((n) => !/^No date was found|after today/.test(n))) flags.push("unsure-reading");
         const attachmentId = await savePhoto(files[i]!);
         await createTransaction(
           { date: s.date ?? "", description: s.merchant ?? "Receipt", pending_review: true, job_tag: undefined, attachment_id: attachmentId, review_flags: flags.length ? flags : undefined },
