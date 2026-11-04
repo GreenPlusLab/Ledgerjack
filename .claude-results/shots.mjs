@@ -110,7 +110,7 @@ try {
     await page.getByText("Full attention needed").first().waitFor({ timeout: 10000 });
     await page.locator('input[type="file"]').first().setInputFiles(`${dir}/receipt-no-date.png`);
     const dl = page.getByRole("button", { name: /download and read/i });
-    if (await dl.isVisible().catch(() => false)) await dl.click();
+    await dl.waitFor({ timeout: 8000 }).then(() => dl.click()).catch(() => {});
     await page.getByText(/\d+ added to your review queue/i).waitFor({ timeout: 120000 });
   });
   await shot("04-bulk-done");
