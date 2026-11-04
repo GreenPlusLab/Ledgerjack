@@ -1,0 +1,115 @@
+commit: 2418b8b06601949e7680286316919cf90768c35e
+=== npm ci
+npm warn deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+added 597 packages in 11s
+exit: 0
+=== run.sh
+playwright ready
+shot 01-ai-no-date-confirm
+CONFIRM TEXT Worth a second look | ! | The date wasn't clear. Please add it from the receipt. | ! | The items add up to $27.40, and the total reads $29.95. That's fine if there's a discount, delivery charge or tip. If not, worth a quick look at the total. | ! | The reader wasn't sure about the total. Worth a quick look. | The reader said: The date is faded. | AMOUNT | $29.95 | Worth a look | Description: B&Q | Date: Not read | Worth a look | Category: Expenses:Cost of Sales:Materials | Something couldn't be read. Fill it in from the receipt. | Fill in what's missing | Edit | Not right? Scan again with a more accurate model | The more accurate model costs a little more per scan. It'll be saved to your review queue for a final check either way. | Scan a receipt | Snap a photo and read it on your phone. You check every field before it counts. | OR TYPE IT | receipt-bq.png | Photo | Parse & Save Draft | Receipts: Text recognition on your phone | Stays with you | 
+DATE AFTER FILL-IN: ""
+shot 02-manual-needs-date
+ERROR SHOWN: true
+shot 03-ai-clean-confirm
+shot 04-bulk-done
+shot 05-review-flags
+REVIEW TEXT LJ | LedgerJack | ENCRYPTED | LedgerJack organises your records. It doesn't give tax advice. Your records are kept on this device, and what goes in them is your responsibility. | Pending Review (2) | Full attention needed | Give each figure a quick check against its receipt before you approve it. | Screwfix | 2026-10-30 | Expenses:Cost of Sales:Materials | -$12.40 | Approve & Save | CORNER HARDWARE | No date | Worth a look | Expenses | -$8.95 | Worth a second look | ! | The date wasn't clear. Please add it from the receipt. | Fill in what's missing | Home | Review | Scan | Invoices | More | Lock
+shot 06-review-after-fill
+AI CALLS 2
+no page errors
+exit: 0
+=== typecheck
+
+> ledgerjack@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.app.json
+
+exit: 0
+=== lint (report only)
+  57:14  error  'e' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/Ledgerjack/Ledgerjack/src/views/mtd/TaxCalculation.tsx
+  19:36  error  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  25:32  error  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  25:69  error  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  32:14  error  'e' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/Ledgerjack/Ledgerjack/src/views/vat/VatHub.tsx
+  63:54  warning  Unused eslint-disable directive (no problems were reported)
+  63:88  warning  React Hook useEffect has a missing dependency: 'loadObs'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 65 problems (53 errors, 12 warnings)
+  1 error and 3 warnings potentially fixable with the `--fix` option.
+
+exit: 1
+=== test
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.1.0 [39m[90m/home/runner/work/Ledgerjack/Ledgerjack[39m
+
+ [32m✓[39m tests/privacy.test.ts [2m([22m[2m35 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/booksCheck.test.ts [2m([22m[2m33 tests[22m[2m)[22m[32m 106[2mms[22m[39m
+ [32m✓[39m tests/moneyProperties.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 359[2mms[22m[39m
+ [32m✓[39m tests/ask.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/readingChecks.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/compare.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/aiPolicy.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/receiptText.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/deadlines.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/diagnostics.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/aiConfidence.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/taxPot.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/encryptedBackup.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 637[2mms[22m[39m
+ [32m✓[39m tests/cis.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[32m179 passed[39m[22m[90m (179)[39m
+[2m   Start at [22m 16:03:02
+[2m   Duration [22m 3.12s[2m (environment 67%, tests 18%, transform 9%, import 5%, worker 1%)[22m
+
+[2mEnvironment [22m [33mhappy-dom was created 14 times[39m[2m · 4.76s total, 67% of tracked time[22m
+[2m            [22m [2mcreate it once per worker with [22m[33mpool: 'vmThreads'[39m[2m (keeps per-file isolation) or [22m[33misolate: false[39m[2m (shares it across files)[22m
+[2m            [22m [2mlearn more: https://vitest.dev/guide/improving-performance#test-environments[22m
+
+exit: 0
+=== build
+[36mvite v8.3.5 [32mbuilding client environment for production...[36m[39m
+transforming...
+✓ 1674 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/registerSW.js                                         0.13 kB
+dist/manifest.webmanifest                                  0.43 kB
+dist/index.html                                            1.59 kB │ gzip:   0.62 kB
+dist/ocr/worker.min.js                                   111.30 kB
+dist/ocr/lang/eng.traineddata.gz                       2,952.87 kB
+dist/ocr/core/tesseract-core-lstm.wasm.js              3,896.48 kB
+dist/ocr/core/tesseract-core-simd-lstm.wasm.js         3,899.47 kB
+dist/ocr/core/tesseract-core-relaxedsimd-lstm.wasm.js  3,905.76 kB
+dist/assets/index-CjmOu6l7.css                            37.16 kB │ gzip:   7.33 kB
+dist/assets/src-uZCcJfYC.js                               17.24 kB │ gzip:   7.28 kB
+dist/assets/index-mXgyWhOW.js                            812.33 kB │ gzip: 225.94 kB
+
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 910ms[39m
+
+[36mPWA v2.0.0[39m
+mode      [35mgenerateSW[39m
+precache  [32m7 entries[39m [2m(848.39 KiB)[22m
+files generated
+  [2mdist/sw.js[22m
+  [2mdist/workbox-f51bf729.js[22m
+exit: 0
+=== audit (production)
+found 0 vulnerabilities
+=== audit (all)
+
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.
