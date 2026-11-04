@@ -26,17 +26,39 @@ export type ReadingFlag =
 
 /** Stored-flag wording (no amounts), shown in Review. */
 export const FLAG_TEXT: Record<ReadingFlag, string> = {
-  "date-missing": "The date couldn't be read. Type the date from the receipt.",
-  "date-future": "The date read is after today. Check the day, month and year.",
-  "date-old": "The date read is more than a year ago. Check the year: the date decides which tax period this goes in.",
-  "total-missing": "No total could be read. Type the total from the receipt.",
-  "shop-missing": "The shop or supplier name couldn't be read.",
-  "items-mismatch": "The items on the receipt don't add up to the total that was read. Check the total.",
-  "split-mismatch": "The suggested parts don't add up to the total that was read.",
-  "unsure-amount": "The reader wasn't sure about the total. Check it against the receipt.",
-  "unsure-category": "The reader wasn't sure which category this belongs in. Check it.",
-  "unsure-reading": "Text recognition wasn't sure about part of this receipt. Check every field.",
+  "date-missing": "The date wasn't clear. Please add it from the receipt.",
+  "date-future": "The date looks like it's after today. Worth checking the day, month and year.",
+  "date-old": "The date is more than a year ago. Worth checking the year, as the date decides which tax period this goes in.",
+  "total-missing": "The total wasn't clear. Please add it from the receipt.",
+  "shop-missing": "The shop or supplier name wasn't clear.",
+  "items-mismatch": "The items don't quite add up to the total. Worth a quick look at the total.",
+  "split-mismatch": "The suggested parts don't quite add up to the total.",
+  "unsure-amount": "The reader wasn't sure about the total. Worth a quick look.",
+  "unsure-category": "The reader wasn't sure about the category. Worth a quick look.",
+  "unsure-reading": "Part of this receipt was hard to read. Worth a quick look at each field.",
 };
+
+/** Which part of the entry each flag is about, so only that part is highlighted. */
+export type ReadingField = "date" | "amount" | "description" | "category";
+export const FLAG_FIELD: Record<ReadingFlag, ReadingField[]> = {
+  "date-missing": ["date"],
+  "date-future": ["date"],
+  "date-old": ["date"],
+  "total-missing": ["amount"],
+  "shop-missing": ["description"],
+  "items-mismatch": ["amount"],
+  "split-mismatch": ["amount"],
+  "unsure-amount": ["amount"],
+  "unsure-category": ["category"],
+  "unsure-reading": ["date", "amount", "description"],
+};
+
+/** The parts of an entry that need a look, from its flags. */
+export function fieldsToCheck(flags: Iterable<ReadingFlag>): Set<ReadingField> {
+  const out = new Set<ReadingField>();
+  for (const f of flags) for (const field of FLAG_FIELD[f]) out.add(field);
+  return out;
+}
 
 /** Flags that leave the entry incomplete: it can't be approved until they're fixed. */
 export const MUST_FIX: ReadonlySet<ReadingFlag> = new Set(["date-missing", "total-missing"]);
@@ -93,9 +115,9 @@ export function checkReading(r: ReadingToCheck, today: string, fmt: (minor: numb
   const add = (flag: ReadingFlag, message = FLAG_TEXT[flag]) => out.push({ flag, message });
 
   if (!isRealDate(r.date)) add("date-missing");
-  else if (r.date > today) add("date-future", `The date read is ${r.date}, which is after today. Check the day, month and year.`);
+  else if (r.date > today) add("date-future", `The date reads ${r.date}, which is after today. Worth checking the day, month and year.`);
   else if (isRealDate(today) && Date.parse(today) - Date.parse(r.date) > 365 * DAY_MS)
-    add("date-old", `The date read is ${r.date}, more than a year ago. Check the year: the date decides which tax period this goes in.`);
+    add("date-old", `The date reads ${r.date}, more than a year ago. Worth checking the year, as the date decides which tax period this goes in.`);
 
   const hasTotal = Number.isFinite(r.amount) && r.amount > 0;
   if (!hasTotal) add("total-missing");
@@ -106,7 +128,7 @@ export function checkReading(r: ReadingToCheck, today: string, fmt: (minor: numb
   if (hasTotal && items.length > 1) {
     const s = sum(items);
     if (Math.abs(s - r.amount) > items.length) {
-      add("items-mismatch", `The items on the receipt add up to ${fmt(s)}, but the total read is ${fmt(r.amount)}. That can be right if there's a discount, delivery charge or tip. Otherwise, check the total.`);
+      add("items-mismatch", `The items add up to ${fmt(s)}, and the total reads ${fmt(r.amount)}. That's fine if there's a discount, delivery charge or tip. If not, worth a quick look at the total.`);
     }
   }
 
@@ -114,7 +136,7 @@ export function checkReading(r: ReadingToCheck, today: string, fmt: (minor: numb
   if (hasTotal && parts.length > 1) {
     const s = sum(parts);
     if (Math.abs(s - r.amount) > parts.length) {
-      add("split-mismatch", `The suggested parts add up to ${fmt(s)}, but the total read is ${fmt(r.amount)}.`);
+      add("split-mismatch", `The suggested parts add up to ${fmt(s)}, and the total reads ${fmt(r.amount)}.`);
     }
   }
 

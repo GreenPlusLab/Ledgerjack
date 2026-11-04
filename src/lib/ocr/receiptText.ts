@@ -110,12 +110,12 @@ export function dateFrom(text: string, order: DateOrder): { date?: string; note?
     const dmy = valid(y, b, a), mdy = valid(y, a, b);
     if (dmy && mdy && a !== b) {
       const date = order === "DMY" ? iso(y, b, a) : iso(y, a, b);
-      return { date, note: "The date could be read two ways. Check the day and month." };
+      return { date, note: "The date could be read two ways. Worth checking the day and month." };
     }
     if (dmy && (order === "DMY" || !mdy)) return { date: iso(y, b, a) };
     if (mdy) return { date: iso(y, a, b) };
   }
-  return { note: "No date was found. Type the date from the receipt." };
+  return { note: "No date was found. Please add it from the receipt." };
 }
 
 const BOILERPLATE = /receipt|invoice|tel\b|phone|vat\s*(no|reg)|www\.|http|date|time|till|cashier|welcome|thank/i;
@@ -135,7 +135,7 @@ export function suggestFromReceiptText(text: string, order: DateOrder, today: st
 
   const total = totalFrom(lines);
   if (total.minor !== undefined) {
-    if (total.minor <= 0) notes.push("The total read as zero or less. Check it.");
+    if (total.minor <= 0) notes.push("The total read as zero or less. Please add it from the receipt.");
     else s.totalMinor = total.minor;
   } else if (total.note) notes.push(total.note);
 
@@ -148,7 +148,7 @@ export function suggestFromReceiptText(text: string, order: DateOrder, today: st
   const d = dateFrom(text, order);
   if (d.date) {
     s.date = d.date;
-    if (d.date > today) notes.push("The date is after today. Check the year and month.");
+    if (d.date > today) notes.push("The date looks like it's after today. Worth checking the year and month.");
   }
   if (d.note) notes.push(d.note);
 

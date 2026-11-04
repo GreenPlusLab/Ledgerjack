@@ -7,8 +7,8 @@ import { useCrypto } from '../contexts/CryptoContext';
 import { formatCurrency, parseCurrencyInput } from '../lib/currency';
 import { useAttachment } from '../hooks/useAttachment';
 import Disclaimer from '../components/Disclaimer';
-import FullAttention, { ReadingIssues } from '../components/FullAttention';
-import { FLAG_TEXT, MUST_FIX, storedFlags } from '../lib/ai/readingChecks';
+import FullAttention, { ReadingIssues, CheckMark } from '../components/FullAttention';
+import { FLAG_TEXT, MUST_FIX, storedFlags, fieldsToCheck, type ReadingField } from '../lib/ai/readingChecks';
 
 export default function PendingReview() {
   const [pending, setPending] = useState<TransactionWithSplits[]>([]);
@@ -152,34 +152,43 @@ export default function PendingReview() {
           const flags = storedFlags(tx.review_flags);
           if (!tx.date && !flags.includes('date-missing')) flags.unshift('date-missing');
           const incomplete = flags.some((f) => MUST_FIX.has(f));
+          const toCheck = fieldsToCheck(flags);
+          const inputCls = (field: ReadingField, extra = '') =>
+            `w-full px-3 py-2 border-2 rounded-lg text-sm text-slate-900 font-medium ${toCheck.has(field) ? 'border-amber-400 bg-amber-50' : `border-slate-300 ${extra}`}`;
+          const lookLabel = (field: ReadingField) =>
+            toCheck.has(field) ? <p className="text-[10px] font-bold text-amber-800 -mb-2">Worth a look</p> : null;
 
           return (
             <div key={tx.id} className="bg-white rounded-xl border border-line p-4 space-y-3">
               {isEditing ? (
                 <div className="space-y-3">
+                  {lookLabel('date')}
                   <input
                     type="date"
                     value={editDate}
                     onChange={(e) => setEditDate(e.target.value)}
-                    className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm text-slate-900 font-medium"
+                    className={inputCls('date')}
                   />
+                  {lookLabel('description')}
                   <input
                     type="text"
                     value={editDesc}
                     onChange={(e) => setEditDesc(e.target.value)}
-                    className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm text-slate-900 font-medium"
+                    className={inputCls('description')}
                   />
+                  {lookLabel('amount')}
                   <input
                     type="number"
                     step="0.01"
                     value={editAmount}
                     onChange={(e) => setEditAmount(e.target.value)}
-                    className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm text-slate-900 font-medium"
+                    className={inputCls('amount')}
                   />
+                  {lookLabel('category')}
                   <select
                     value={editDebitAccount}
                     onChange={(e) => setEditDebitAccount(e.target.value)}
-                    className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm text-slate-900 bg-white font-medium"
+                    className={inputCls('category', 'bg-white')}
                   >
                     {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
@@ -214,8 +223,10 @@ export default function PendingReview() {
                 </div>
               ) : (
                 <>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-3">
+                  {tx.attachment_id && <ReceiptThumb attachmentId={tx.attachment_id} onOpen={() => handlePreviewAttachment(tx.attachment_id!)} />}
+                  <div className="flex-1 min-w-0 flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2 min-w-0">
                       <div
                         className={`w-9 h-9 rounded-lg flex items-center justify-center border ${
                           isExpense ? 'bg-red-50 border-red-200 text-red-600' : 'bg-emerald-50 border-emerald-200 text-income'
@@ -223,11 +234,16 @@ export default function PendingReview() {
                       >
                         {isExpense ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                       </div>
-                      <div>
-                        <p className="font-semibold text-slate-900">{tx.description}</p>
-                        <p className="text-xs text-ink-soft font-medium">
-                          {tx.date || 'No date'} &middot; {debitSplit?.account_id}
-                        </p>
+                      <div className="min-w-0 space-y-0.5">
+                        <CheckMark on={toCheck.has('description')}>
+                          <p className="font-semibold text-slate-900 break-words">{tx.description}</p>
+                        </CheckMark>
+                        <CheckMark on={toCheck.has('date')}>
+                          <p className="text-xs text-ink-soft font-medium">{tx.date || 'No date'}</p>
+                        </CheckMark>
+                        <CheckMark on={toCheck.has('category')}>
+                          <p className="text-xs text-ink-soft font-medium break-words">{debitSplit?.account_id}</p>
+                        </CheckMark>
                         {tx.job_tag && (
                           <span className="inline-block mt-1 text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-semibold border border-brand-200">
                             {tx.job_tag}
@@ -235,14 +251,17 @@ export default function PendingReview() {
                         )}
                       </div>
                     </div>
-                    <span className={`font-bold ${isExpense ? 'text-red-600' : 'text-income'}`}>
-                    {isExpense ? '-' : '+'}{formatCurrency(Math.abs(debitSplit?.amount || 0), region)}
-                    </span>
+                    <CheckMark on={toCheck.has('amount')} className="shrink-0 text-right">
+                      <span className={`font-bold ${isExpense ? 'text-red-600' : 'text-income'}`}>
+                      {isExpense ? '-' : '+'}{formatCurrency(Math.abs(debitSplit?.amount || 0), region)}
+                      </span>
+                    </CheckMark>
+                  </div>
                   </div>
 
                   {flags.length > 0 && (
                     <div className="bg-amber-50 border border-amber-300 rounded-lg p-2.5 space-y-1">
-                      <p className="text-[11px] font-bold text-amber-900">Check these</p>
+                      <p className="text-[11px] font-bold text-amber-900">Worth a second look</p>
                       <ReadingIssues messages={flags.map((f) => FLAG_TEXT[f])} />
                     </div>
                   )}
@@ -292,5 +311,32 @@ export default function PendingReview() {
         })}
       </div>
     </div>
+  );
+}
+
+/** The receipt photo beside the figures, decrypted on this device only while shown. */
+function ReceiptThumb({ attachmentId, onOpen }: { attachmentId: string; onOpen: () => void }) {
+  const { decryptBlob } = useCrypto();
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let made: string | null = null;
+    let live = true;
+    (async () => {
+      try {
+        const att = await db.attachments.get(attachmentId);
+        if (!att || !live) return;
+        const bytes = await decryptBlob(att.encrypted_iv, att.encrypted_data);
+        if (!live) return;
+        made = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: att.mime_type }));
+        setUrl(made);
+      } catch { /* the eye button still offers the full view */ }
+    })();
+    return () => { live = false; if (made) URL.revokeObjectURL(made); };
+  }, [attachmentId, decryptBlob]);
+  if (!url) return null;
+  return (
+    <button type="button" onClick={onOpen} className="shrink-0" aria-label="Show the receipt photo larger">
+      <img src={url} alt="Receipt" className="w-20 max-h-32 object-contain rounded border border-line bg-white" />
+    </button>
   );
 }

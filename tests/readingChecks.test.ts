@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  checkReading, cleanDate, isRealDate, flagsOf, storedFlags, FLAG_TEXT, MUST_FIX, ALL_FLAGS,
+  checkReading, cleanDate, isRealDate, flagsOf, storedFlags, FLAG_TEXT, MUST_FIX, ALL_FLAGS, FLAG_FIELD, fieldsToCheck,
 } from "../src/lib/ai/readingChecks";
 import { suggestFromReceiptText } from "../src/lib/ocr/receiptText";
 
@@ -30,7 +30,7 @@ describe("dates are never guessed", () => {
   it("text recognition no longer fills in today's date", () => {
     const s = suggestFromReceiptText("CORNER SHOP\nTOTAL 4.20", "DMY", today);
     expect(s.date).toBeUndefined();
-    expect(s.notes.join(" ")).toMatch(/No date was found\. Type the date/);
+    expect(s.notes.join(" ")).toMatch(/No date was found\. Please add it/);
     expect(s.notes.join(" ")).not.toMatch(/today/);
   });
 });
@@ -68,6 +68,15 @@ describe("the AI's own score", () => {
   });
   it("isn't asked of text recognition, which gives no score", () => {
     expect(flags(good)).toEqual([]);
+  });
+});
+
+describe("only the part that needs a look is highlighted", () => {
+  it("maps each flag to its field", () => {
+    expect([...fieldsToCheck(["date-missing"])]).toEqual(["date"]);
+    expect([...fieldsToCheck(["items-mismatch", "unsure-category"])].sort()).toEqual(["amount", "category"]);
+    expect(fieldsToCheck([]).size).toBe(0);
+    for (const f of ALL_FLAGS) expect(FLAG_FIELD[f].length).toBeGreaterThan(0);
   });
 });
 
