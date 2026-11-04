@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Sparkles, Camera, Upload, Type, ChevronDown, X, Loader2, GitBranch, List, CheckCircle2, Pencil, AlertTriangle } from 'lucide-react';
+import { Sparkles, Camera, Upload, Type, ChevronDown, X, Loader2, GitBranch, List, CheckCircle2, Pencil, Eye } from 'lucide-react';
 import { useApp, useRegionConfig } from '../contexts/AppContext';
 import { useCrypto } from '../contexts/CryptoContext';
 import { createTransaction, makeSimpleSplits, LedgerError } from '../lib/ledger';
 import { parseWithAI, aiParsedToPendingTransaction, checkAIReading, type AIParsedTransaction } from '../lib/ai';
-import { MUST_FIX, flagsOf } from '../lib/ai/readingChecks';
-import FullAttention, { ReadingIssues } from '../components/FullAttention';
+import { MUST_FIX, flagsOf, fieldsToCheck } from '../lib/ai/readingChecks';
+import FullAttention, { ReadingIssues, CheckMark } from '../components/FullAttention';
 import { getSelectedModel } from '../lib/ai/aiModels';
 import { blobToUint8Array } from '../lib/image';
 import { useAttachment } from '../hooks/useAttachment';
@@ -36,6 +36,7 @@ export default function TransactionEntry() {
   const [privacy, setPrivacy]         = useState<PrivacyChoice | null>(null);
   const [parsedResult, setParsedResult] = useState<AIParsedTransaction | null>(null);
   const [pendingConfirm, setPendingConfirm] = useState<AIParsedTransaction | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
   const [splitChoice, setSplitChoice] = useState<'combined' | 'split'>('combined');
 
   const { region, apiKey, aiModel } = useApp();
@@ -328,6 +329,7 @@ export default function TransactionEntry() {
   const fmtMoney = (minor: number) => formatCurrency(minor, region);
   const confirmIssues = pendingConfirm ? checkAIReading(pendingConfirm, fmtMoney) : [];
   const confirmIncomplete = confirmIssues.some((i) => MUST_FIX.has(i.flag));
+  const confirmFields = fieldsToCheck(confirmIssues.map((i) => i.flag));
   const splitIssues = parsedResult ? checkAIReading(parsedResult, fmtMoney) : [];
 
   const modelLabel =
@@ -338,6 +340,12 @@ export default function TransactionEntry() {
   return (
     <div className="space-y-4 pb-24">
       <Disclaimer />
+
+      {showReceipt && receiptImageData && (
+        <button type="button" className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setShowReceipt(false)} aria-label="Close the receipt photo">
+          <img src={receiptImageData} alt="Your receipt" className="max-w-full max-h-[85vh] rounded-xl" />
+        </button>
+      )}
 
       {success && (
         <div className="bg-brand-50 border-2 border-brand-300 rounded-xl p-3 text-brand-800 text-sm font-semibold">
@@ -378,9 +386,9 @@ export default function TransactionEntry() {
               {/* Each thing that looks wrong, in plain words. Nothing is changed for them. */}
               {(confirmIssues.length > 0 || pendingConfirm.uncertain_about) && (
                 <div className="bg-amber-50 border border-amber-300 rounded-lg p-2.5 flex gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
+                  <Eye className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="space-y-1">
-                    <p className="text-[11px] font-bold text-amber-900">Check these</p>
+                    <p className="text-[11px] font-bold text-amber-900">Worth a second look</p>
                     <ReadingIssues messages={confirmIssues.map((i) => i.message)} />
                     {pendingConfirm.uncertain_about && (
                       <p className="text-[11px] text-amber-900 leading-relaxed">The reader said: {pendingConfirm.uncertain_about}</p>
@@ -389,13 +397,27 @@ export default function TransactionEntry() {
                 </div>
               )}
 
-              <div className="bg-slate-50 border border-line rounded-lg p-3 space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Amount</p>
-                <p className="text-2xl font-bold text-slate-900 num">{pendingConfirm.amount > 0 ? formatCurrency(pendingConfirm.amount, region) : 'Not read'}</p>
-                <div className="pt-1 space-y-0.5">
-                  <p className="text-sm text-slate-700 truncate"><span className="text-ink-soft">Description:</span> {pendingConfirm.description || 'Not read'}</p>
-                  <p className="text-sm text-slate-700"><span className="text-ink-soft">Date:</span> {pendingConfirm.date || 'Not read'}</p>
-                  <p className="text-sm text-slate-700 truncate"><span className="text-ink-soft">Category:</span> {pendingConfirm.debit_account}</p>
+              {/* The receipt beside the figures, so checking takes a glance. */}
+              <div className="bg-slate-50 border border-line rounded-lg p-3 flex gap-3">
+                {receiptImageData && (
+                  <button type="button" onClick={() => setShowReceipt(true)} className="shrink-0" aria-label="Show the receipt photo larger">
+                    <img src={receiptImageData} alt="Your receipt" className="w-24 max-h-40 object-contain rounded border border-line bg-white" />
+                  </button>
+                )}
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <CheckMark on={confirmFields.has('amount')}>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Amount</p>
+                    <p className="text-2xl font-bold text-slate-900 num">{pendingConfirm.amount > 0 ? formatCurrency(pendingConfirm.amount, region) : 'Not read'}</p>
+                  </CheckMark>
+                  <CheckMark on={confirmFields.has('description')}>
+                    <p className="text-sm text-slate-700 truncate"><span className="text-ink-soft">Description:</span> {pendingConfirm.description || 'Not read'}</p>
+                  </CheckMark>
+                  <CheckMark on={confirmFields.has('date')}>
+                    <p className="text-sm text-slate-700"><span className="text-ink-soft">Date:</span> {pendingConfirm.date || 'Not read'}</p>
+                  </CheckMark>
+                  <CheckMark on={confirmFields.has('category')}>
+                    <p className="text-sm text-slate-700 truncate"><span className="text-ink-soft">Category:</span> {pendingConfirm.debit_account}</p>
+                  </CheckMark>
                 </div>
               </div>
 

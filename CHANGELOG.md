@@ -6,6 +6,12 @@ are marked **[security]**. This project follows Semantic Versioning.
 ## [Unreleased]
 
 ### Changed
+- Friendlier wording on receipt checks ("Full attention needed", "Worth a
+  second look") so people check without being put off. Nothing is approved
+  automatically; each entry still takes one tap from the person.
+- Checking is quicker: the receipt photo sits beside the figures on the
+  confirm card and in Review, and only the part that needs a look (date,
+  amount, name or category) is outlined, with the words "Worth a look".
 - The project's web address is now `ledgerjack.com` (HMRC return address, AI
   referer and the server helpers' allow-lists). The HMRC set-up guides now
   match how the app works: HMRC returns to the home page, with no separate

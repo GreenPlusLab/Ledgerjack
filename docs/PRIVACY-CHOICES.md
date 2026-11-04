@@ -165,3 +165,16 @@ Still to do (good student tasks):
   improve `receiptText.ts` with what fails (crumpled, faded, long receipts).
 - Test AI reading with a real free OpenRouter account and a paid one.
 - Accessibility check of the new screens (screen readers, contrast in dark mode).
+- **Read bank statement PDFs on the phone.** Many people only get PDF
+  statements, not CSV files. Reading them on the device (text recognition plus
+  table layout, as Fastagger does for mobile money statements in Kenya: IEEE
+  Spectrum, 3 November 2026) would close most of the gap with bank apps'
+  automatic feeds without connecting to anyone's bank. Every line goes to
+  Review, like receipts.
+- **Watch real users before launch.** Spend time with five to ten sole traders
+  (for example a plumber, a cleaner, a hairdresser) while they record a week of
+  receipts. Busy people skim, so look for where checking is slow and simplify
+  that, rather than adding more warnings.
+- **A small AI model on the phone** to sort receipt text into fields, so the
+  "read on this phone" option gets closer to online AI without anything leaving
+  the device. Check each model's licence and test it on low-cost phones.

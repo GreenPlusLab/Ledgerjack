@@ -4,11 +4,13 @@
  * nothing is flagged, so the person checks every field against the receipt.
  */
 
+import type React from "react";
 import { Eye } from "lucide-react";
 
-export const FULL_ATTENTION_TITLE = "Full attention required";
+export const FULL_ATTENTION_TITLE = "Full attention needed";
 export const FULL_ATTENTION_TEXT =
-  "AI and text recognition can misread receipts, even when nothing is flagged. Check every field against the receipt before you save. What goes into your books, and from there to HMRC, is your responsibility.";
+  "Reading receipts saves typing, but it can get things wrong, even when nothing is flagged. Give each figure a quick check against the receipt before you save. You have the final say on what goes in your books.";
+export const FULL_ATTENTION_COMPACT = "Give each figure a quick check against its receipt before you approve it.";
 
 export default function FullAttention({ compact = false }: { compact?: boolean }) {
   return (
@@ -17,7 +19,7 @@ export default function FullAttention({ compact = false }: { compact?: boolean }
       <div>
         <p className="text-xs font-bold text-amber-900">{FULL_ATTENTION_TITLE}</p>
         {!compact && <p className="text-[11px] text-amber-900 leading-relaxed mt-0.5">{FULL_ATTENTION_TEXT}</p>}
-        {compact && <p className="text-[11px] text-amber-900 leading-relaxed mt-0.5">Check every field against the receipt before you approve it.</p>}
+        {compact && <p className="text-[11px] text-amber-900 leading-relaxed mt-0.5">{FULL_ATTENTION_COMPACT}</p>}
       </div>
     </div>
   );
@@ -35,5 +37,16 @@ export function ReadingIssues({ messages }: { messages: string[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Marks one part of an entry as needing a look: amber outline plus the word, never colour alone. */
+export function CheckMark({ on, children, className = "" }: { on: boolean; children: React.ReactNode; className?: string }) {
+  if (!on) return <div className={className}>{children}</div>;
+  return (
+    <div className={`${className} bg-amber-50 ring-2 ring-amber-400 rounded-md px-1.5 py-0.5`}>
+      {children}
+      <span className="block text-[10px] font-bold text-amber-800">Worth a look</span>
+    </div>
   );
 }
