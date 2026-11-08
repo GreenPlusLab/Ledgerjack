@@ -5,6 +5,13 @@ are marked **[security]**. This project follows Semantic Versioning.
 
 ## [Unreleased]
 
+### Security
+- Git now ignores AI coding tools' local settings (`.claude/settings.local.json`)
+  and all `.env` files, and AGENTS.md rule 12 forbids real secrets in commands
+  or "don't ask again" approvals. A check of the full history (all branches and
+  pull request copies, gitleaks rules plus Apiiro's checks for passwords inside
+  commands) found no secrets.
+
 ### Changed
 - Friendlier wording on receipt checks ("Full attention needed", "Worth a
   second look") so people check without being put off. Nothing is approved

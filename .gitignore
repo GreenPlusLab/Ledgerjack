@@ -20,4 +20,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# AI coding tools: personal settings and saved "don't ask again" approvals can
+# hold passwords and keys (see AGENTS.md rule 12). Never commit them.
+.claude/settings.local.json
+.claude/*.local.*
 .env
+.env.*
+!.env.example
