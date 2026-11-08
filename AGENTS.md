@@ -59,6 +59,16 @@ Stack: React 18, TypeScript, Vite, Tailwind, Dexie, Vitest.
    decides. An entry with no date or no total cannot be approved until the
    person fills it in.
 
+12. **Never put a real password, key or token in a command, file or message.**
+   Read secrets from environment variables or the hosting secret store (for
+   example `$HMRC_CLIENT_SECRET`); never type the value. When an AI coding tool
+   asks to run a command that contains a secret, never choose "always allow" or
+   "Yes, and don't ask again": the tool saves the whole command, secret
+   included, in a settings file such as `.claude/settings.local.json`. Over
+   2,500 secrets leaked to public GitHub this way (Apiiro, November 2026).
+   These files and `.env` files are git-ignored here; never force-add them. If
+   a secret is ever committed, change it first, then remove it.
+
 ## How to verify your work
 
 Run all four before saying a change is done, and show the output:
