@@ -7,7 +7,7 @@
  */
 
 // Your deployed relay function URL. Replace <PROJECT_REF> with your Supabase
-// project ref (same one your ai-proxy uses).
+// project ref (shown in the Supabase dashboard).
 export const RELAY_BASE =
   "https://<PROJECT_REF>.supabase.co/functions/v1/hmrc-relay";
 

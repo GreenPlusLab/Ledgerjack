@@ -15,7 +15,20 @@ it and how blocking it is.
       All verification so far is static analysis + logic self-tests; nothing has
       been run in a real browser from this build environment.
 - [ ] **Deploy the HMRC relay** (`supabase/functions/hmrc-relay`) to your own
-      Supabase project and set ALLOWED_ORIGINS. Do the same for `ai-proxy` if used.
+      Supabase project and set ALLOWED_ORIGINS.
+- [ ] **Harden the HMRC relay before live use.** It is deployed with JWT
+      verification off, so anyone can call it, and the Origin check can be
+      faked outside a browser. It can't hand out HMRC access without the
+      person's own HMRC login, but before going live:
+      - limit requests per sender (rate limiting);
+      - forward only the HMRC API paths LedgerJack actually uses (an allowlist),
+        not any path under `/hmrc/`;
+      - don't log tokens or request bodies;
+      - include it in the independent security review.
+- [x] **Unused AI-credits server code removed** (November 2026): the old
+      `ai-proxy` function, its `ai_credits` table and the unused
+      `@supabase/supabase-js` library. LedgerJack keeps no user data on a
+      server, so there is no database for access rules to protect.
 
 ## B. Verify external facts (may be stale — flagged in code/docs)
 

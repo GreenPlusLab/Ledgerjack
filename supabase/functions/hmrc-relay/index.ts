@@ -1,7 +1,11 @@
 // LedgerJack MTD relay — Supabase Edge Function (Deno)
 // -----------------------------------------------------
-// Same job as your ai-proxy: a stateless, allowlist-CORS proxy that hides a
-// secret from the browser. Here the secret is the HMRC client_secret.
+// A stateless, allowlist-CORS proxy that hides a secret from the browser: the
+// HMRC client_secret. It is LedgerJack's only server code.
+//
+// Note: the Origin check only stops other websites in a browser. Any script
+// outside a browser can send any Origin, so it is not access control. See the
+// relay hardening items in docs/PRE-LAUNCH-CHECKLIST.md before going live.
 //
 // It does three things and remembers nothing:
 //   POST /oauth/token    — exchange an auth code (+ PKCE) for tokens
@@ -24,7 +28,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-// Match your ai-proxy allowlist. Add staging if you use it.
+// The app's own addresses. Add staging if you use it.
 const ALLOWED_ORIGINS = [
   "https://ledgerjack.com",
   "https://www.ledgerjack.com",

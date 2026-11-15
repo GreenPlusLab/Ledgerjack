@@ -5,6 +5,12 @@ are marked **[security]**. This project follows Semantic Versioning.
 
 ## [Unreleased]
 
+### Removed
+- Unused AI-credits server code from an earlier design: the `ai-proxy` Supabase
+  function, the `ai_credits` table migrations and the `@supabase/supabase-js`
+  library (nothing in the app used them). The HMRC relay is now the only server
+  code, and the checklist lists how to harden it before live use.
+
 ### Security
 - Git now ignores AI coding tools' local settings (`.claude/settings.local.json`)
   and all `.env` files, and AGENTS.md rule 12 forbids real secrets in commands

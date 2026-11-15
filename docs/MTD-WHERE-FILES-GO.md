@@ -9,7 +9,6 @@ ledgerjack-mtd-supabase/
 ├── supabase/functions/hmrc-relay/index.ts
 │        → copy into YOUR repo at the SAME path:
 │          supabase/functions/hmrc-relay/index.ts
-│          (sits next to your existing supabase/functions/ai-proxy/)
 │
 ├── src/lib/mtd/
 │     ├── hmrcConfig.ts      ┐
@@ -29,7 +28,7 @@ ledgerjack-mtd-supabase/
 ## Two things you must fill in before it runs
 1. In `src/lib/mtd/hmrcConfig.ts`:
    - `RELAY_BASE` → replace `<PROJECT_REF>` with your Supabase project ref
-     (the same one in your ai-proxy URL).
+     (shown in the Supabase dashboard).
    - `HMRC_CLIENT_ID` → your sandbox Client ID from the HMRC Developer Hub.
    - `REDIRECT_URI` → already set to `https://ledgerjack.com` (the app's main
      address; there is no separate callback page).
