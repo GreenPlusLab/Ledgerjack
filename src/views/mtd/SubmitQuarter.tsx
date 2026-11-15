@@ -1,15 +1,21 @@
 /**
- * SubmitQuarter — review a quarter's figures and submit the period summary.
+ * SubmitQuarter — review the year-to-date figures and submit the quarterly update.
  *
- * Flow: aggregate the ledger for the obligation dates -> show a plain-English
- * summary -> let the user expand the exact JSON we'll send -> submit.
- * Nothing leaves the device until the user taps "Send to HMRC".
+ * Quarterly updates are cumulative: each covers the start of the tax year to the
+ * end of the update period (GOV.UK, "Send quarterly updates").
+ *
+ * Flow: aggregate the ledger from the year's start to the obligation's end ->
+ * show a plain-English summary and anything HMRC would reject -> let the user
+ * expand the exact JSON we'll send -> submit. Nothing leaves the device until
+ * the user taps "Send to HMRC".
  */
 
 import { useEffect, useState } from "react";
 import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
 import { aggregatePeriod, type PeriodSummary } from "../../lib/mtd/mtdAggregator";
 import { submitQuarterlyUpdate, type Obligation } from "../../lib/mtd/mtdApi";
+import { cumulativeStart } from "../../lib/mtd/mtdEndpoints";
+import { buildCumulativeBody, checkCumulativeBody } from "../../lib/mtd/cumulativeUpdate";
 import { HMRC_ENV } from "../../lib/mtd/hmrcConfig";
 
 function gbp(n: number | undefined): string {
@@ -17,8 +23,8 @@ function gbp(n: number | undefined): string {
 }
 
 export default function SubmitQuarter({
-  businessId, obligation, onBack,
-}: { businessId: string; obligation: Obligation; onBack: () => void }) {
+  businessId, obligation, allObligations = [], onBack,
+}: { businessId: string; obligation: Obligation; allObligations?: Obligation[]; onBack: () => void }) {
   const [summary, setSummary] = useState<PeriodSummary | null>(null);
   const [consolidated, setConsolidated] = useState(false);
   const [showJson, setShowJson] = useState(false);
@@ -26,20 +32,17 @@ export default function SubmitQuarter({
   const [result, setResult] = useState<"ok" | "error" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    aggregatePeriod(obligation.periodStartDate, obligation.periodEndDate).then(setSummary);
-  }, [obligation]);
+  const start = cumulativeStart(obligation, allObligations);
 
-  const payload = summary && {
-    periodDates: summary.periodDates,
-    periodIncome: summary.periodIncome,
-    periodExpenses: consolidated
-      ? { consolidatedExpenses: summary.consolidatedExpenses }
-      : summary.periodExpenses,
-  };
+  useEffect(() => {
+    aggregatePeriod(start, obligation.periodEndDate).then(setSummary);
+  }, [obligation, start]);
+
+  const payload = summary && buildCumulativeBody(summary, consolidated);
+  const problems = payload ? checkCumulativeBody(payload) : [];
 
   async function submit() {
-    if (!summary) return;
+    if (!summary || problems.length) return;
     setBusy(true); setResult(null); setMessage(null);
     try {
       // In sandbox, ask HMRC for the success scenario.
@@ -49,7 +52,7 @@ export default function SubmitQuarter({
       });
       if (res.status >= 200 && res.status < 300) {
         setResult("ok");
-        setMessage("Quarterly update submitted.");
+        setMessage("Quarterly update submitted. HMRC now has your figures for the year so far.");
       } else {
         setResult("error");
         setMessage(`HMRC rejected the submission (status ${res.status}). Nothing was filed.`);
@@ -70,7 +73,11 @@ export default function SubmitQuarter({
       </div>
 
       <p className="text-sm text-slate-600">
-        Quarter <span className="font-bold">{obligation.periodStartDate} → {obligation.periodEndDate}</span>
+        Update period <span className="font-bold">{obligation.periodStartDate} → {obligation.periodEndDate}</span>
+      </p>
+      <p className="text-xs text-slate-500">
+        Each update covers the year so far, so these figures run from <span className="font-semibold">{start}</span> to{" "}
+        <span className="font-semibold">{obligation.periodEndDate}</span>. HMRC replaces your previous update with this one.
       </p>
 
       {!summary && <p className="text-sm text-ink-soft">Adding up your transactions…</p>}
@@ -102,11 +109,19 @@ export default function SubmitQuarter({
             </pre>
           )}
 
+          {problems.length > 0 && (
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-3 space-y-1">
+              <p className="text-xs font-bold text-amber-900">HMRC won't accept this yet</p>
+              <ul className="list-disc pl-4 text-xs text-amber-900 space-y-0.5">{problems.map((p) => <li key={p}>{p}</li>)}</ul>
+              <p className="text-[11px] text-amber-900">Nothing has been sent. Correct the entries in your books, then come back.</p>
+            </div>
+          )}
+
           {message && <p className={`text-sm ${result === "error" ? "text-red-600" : "text-slate-600"}`}>{message}</p>}
 
           <button
             onClick={submit}
-            disabled={busy}
+            disabled={busy || problems.length > 0}
             className="w-full bg-brand-600 text-white py-2.5 rounded-lg text-sm font-bold disabled:opacity-50"
           >
             {busy ? "Submitting…" : "Send to HMRC"}

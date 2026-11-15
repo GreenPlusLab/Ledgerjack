@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { triggerCalculation, getCalculation } from "../../lib/mtd/mtdApi";
+import { triggerCalculation, waitForCalculation } from "../../lib/mtd/mtdApi";
 
 function gbp(n: unknown): string {
   const v = typeof n === "number" ? n : Number(n);
@@ -21,12 +21,11 @@ export default function TaxCalculation({ taxYear, onBack }: { taxYear: string; o
   async function run() {
     setBusy(true); setError(null); setCalc(null);
     try {
-      const trig = await triggerCalculation(taxYear);
-      const id = (trig.data as any)?.calculationId ?? (trig.data as any)?.id;
-      if (!id) throw new Error("no_calc_id");
-      // Give HMRC a moment, then fetch once. (A production build should poll.)
-      await new Promise((r) => setTimeout(r, 1500));
-      const res = await getCalculation(id);
+      const trig = await triggerCalculation(taxYear, "in-year");
+      const id = (trig.data as any)?.calculationId;
+      if (trig.status >= 400 || !id) throw new Error("no_calc_id");
+      // HMRC answers "not found" until the calculation is ready, so wait for it.
+      const res = await waitForCalculation(taxYear, id);
       if (res.status >= 400) throw new Error(`calc_${res.status}`);
       setCalc(res.data);
     } catch (e) {
@@ -36,9 +35,8 @@ export default function TaxCalculation({ taxYear, onBack }: { taxYear: string; o
     }
   }
 
-  // Field paths vary by version — read defensively. CONFIRM against the spec.
-  const summary = calc?.calculation?.taxCalculation ?? calc?.taxCalculation ?? {};
-  const income = summary?.incomeTax?.totalIncomeTaxAndNicsDue ?? summary?.totalIncomeTaxAndNicsDue;
+  // individual-calculations-api v8: calculation.taxCalculation.totalIncomeTaxAndNicsDue
+  const income = calc?.calculation?.taxCalculation?.totalIncomeTaxAndNicsDue;
 
   return (
     <div className="space-y-4 pb-24">

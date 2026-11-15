@@ -59,7 +59,7 @@ export default function MtdHub({ onBack }: { onBack: () => void }) {
     try {
       const biz = await getSelfEmploymentBusiness();
       setBusiness(biz);
-      const obs = await getObligations(win.from, win.to);
+      const obs = biz ? await getObligations(win.from, win.to, undefined, biz.businessId) : [];
       setObligations(obs);
     } catch (e) {
       setError("Couldn't load from HMRC. Check your connection and try again.");
@@ -85,7 +85,7 @@ export default function MtdHub({ onBack }: { onBack: () => void }) {
 
   // ---- sub-screens ----
   if (screen === "submit" && business && selected) {
-    return <SubmitQuarter businessId={business.businessId} obligation={selected} onBack={() => { setScreen("list"); loadEverything(); }} />;
+    return <SubmitQuarter businessId={business.businessId} obligation={selected} allObligations={obligations} onBack={() => { setScreen("list"); loadEverything(); }} />;
   }
   if (screen === "calc") {
     return <TaxCalculation taxYear={win.label} onBack={() => setScreen("list")} />;

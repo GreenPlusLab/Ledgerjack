@@ -5,6 +5,30 @@ are marked **[security]**. This project follows Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed (Making Tax Digital, checked against HMRC's published API source, 15 November 2026)
+- Business Details now uses version 2.0 and Individual Calculations version 8.0;
+  the versions LedgerJack asked for (1.0 and 7.0) are no longer offered.
+- Quarterly updates now use HMRC's cumulative endpoint (PUT
+  `.../cumulative/{taxYear}`) and cover the start of the tax year to the end of
+  the update period, as GOV.UK requires. Previously each update sent only its own
+  three months to an address that doesn't accept updates.
+- Updates always include income and expenses (zeros when there are none), and
+  anything HMRC would reject (such as negative income) is shown in plain words
+  before sending, instead of failing at HMRC.
+- Obligations are fetched for the one self-employment business, and a property
+  business is never used in its place.
+- The tax estimate waits for HMRC's calculation to be ready instead of asking
+  once after 1.5 seconds.
+- Final declaration now follows HMRC's journey: get the "intent to finalise"
+  calculation, show it (and any HMRC errors, which block declaring), show HMRC's
+  declaration wording exactly, then submit with the same calculation the person
+  saw. Previously it submitted without showing the calculation.
+
+### Security
+- The HMRC relay forwards only the HMRC calls LedgerJack makes (each path
+  checked against HMRC's formats), limits requests per sender and checks
+  sign-in requests (`supabase/functions/hmrc-relay/guard.ts`).
+
 ### Removed
 - Unused AI-credits server code from an earlier design: the `ai-proxy` Supabase
   function, the `ai_credits` table migrations and the `@supabase/supabase-js`

@@ -27,6 +27,11 @@
 //   HMRC_ENV=sandbox   APP_VERSION=0.1.0   VENDOR_PUBLIC_IP=0.0.0.0
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { allowedHmrcCall, RateLimiter } from "./guard.ts";
+
+// Per-sender limits (best effort; see guard.ts).
+const generalLimit = new RateLimiter(60, 60_000); // 60 requests a minute
+const tokenLimit = new RateLimiter(10, 60_000);   // 10 sign-ins/refreshes a minute
 
 // The app's own addresses. Add staging if you use it.
 const ALLOWED_ORIGINS = [
@@ -79,6 +84,12 @@ Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
   // Everything after ".../hmrc-relay" is our sub-path
   const path = url.pathname.replace(/^.*\/hmrc-relay/, "") || "/";
+
+  const sender = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+  const isToken = path === "/oauth/token" || path === "/oauth/refresh";
+  if (!generalLimit.allow(sender) || (isToken && !tokenLimit.allow(sender))) {
+    return json({ error: "too_many_requests" }, 429, cors);
+  }
   const base = HMRC_BASES[env("HMRC_ENV", "sandbox") === "production" ? "production" : "sandbox"];
 
   try {
@@ -107,7 +118,17 @@ async function handleToken(
   cors: Record<string, string>,
   grantType: string,
 ) {
-  const body = await req.json();
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== "object") return json({ error: "bad_request" }, 400, cors);
+  if (grantType === "authorization_code") {
+    // HMRC checks these too; refusing early keeps the relay from being used for anything else.
+    if (typeof body.code !== "string" || typeof body.redirect_uri !== "string") return json({ error: "bad_request" }, 400, cors);
+    if (!ALLOWED_ORIGINS.some((o) => body.redirect_uri === o || body.redirect_uri.startsWith(o + "/"))) {
+      return json({ error: "bad_redirect_uri" }, 400, cors);
+    }
+  } else if (typeof body.refresh_token !== "string") {
+    return json({ error: "bad_request" }, 400, cors);
+  }
   const form = new URLSearchParams();
   form.set("client_id", env("HMRC_CLIENT_ID"));
   form.set("client_secret", env("HMRC_CLIENT_SECRET"));
@@ -147,6 +168,10 @@ async function handleProxy(
   const targetPath = path.replace(/^\/hmrc/, "");
   if (!targetPath.startsWith("/") || targetPath.includes("..")) {
     return json({ error: "bad_path" }, 400, cors);
+  }
+  // Only the HMRC calls LedgerJack makes (see guard.ts).
+  if (!allowedHmrcCall(req.method, targetPath, env("HMRC_ENV", "sandbox") !== "production")) {
+    return json({ error: "not_allowed" }, 403, cors);
   }
   const target = base + targetPath + search;
 
