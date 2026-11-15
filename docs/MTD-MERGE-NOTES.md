@@ -4,8 +4,8 @@ Your app, with the free Making Tax Digital (HMRC) feature merged in. Nothing was
 removed; every change is additive. Here is the complete list.
 
 ## New files (8 code + 2 guides)
-- `supabase/functions/hmrc-relay/index.ts` — the zero-knowledge relay (sits next
-  to your existing `ai-proxy`). Holds the HMRC secret, adds required fraud
+- `supabase/functions/hmrc-relay/index.ts` — the zero-knowledge relay. Holds
+  the HMRC secret, adds required fraud
   headers, forwards to HMRC, stores nothing.
 - `src/lib/mtd/hmrcConfig.ts` — relay URL, client id, redirect URI, scopes.
 - `src/lib/mtd/mtdVault.ts` — stores HMRC tokens + device id ENCRYPTED using your

@@ -1,14 +1,14 @@
 # LedgerJack MTD — Start Here (Supabase version, novice step-by-step)
 
-You already run Supabase for your ai-proxy, so the MTD relay lives right beside
-it as a second Edge Function. That means no new hosting to learn and no domain
-changes. Everything below stays in **sandbox** (HMRC's safe test world) until
+The MTD relay is a small Supabase Edge Function (a server helper) that keeps
+the HMRC client secret away from the browser. It is the project's only server
+code, and it stores nothing. Everything below stays in **sandbox** (HMRC's safe test world) until
 the very last phase — no real tax data or money is touched before then.
 
 Six phases:
 0. Free accounts you need
 1. Create your HMRC sandbox app (get your keys)
-2. Deploy the relay to Supabase (next to ai-proxy)
+2. Deploy the relay to Supabase
 3. Add the client files to your app
 4. Test the whole flow in sandbox
 5. Apply to HMRC to go live
@@ -21,8 +21,8 @@ only ever typed into `supabase secrets set` in Phase 2.
 
 ## PHASE 0 — Free accounts (~15 min)
 1. **HMRC Developer Hub** account: `https://developer.service.hmrc.gov.uk`.
-2. **Supabase CLI** (you likely already have it for ai-proxy). If not:
-   `https://supabase.com/docs/guides/cli` — install, then `supabase login`.
+2. **Supabase CLI**: `https://supabase.com/docs/guides/cli`. Install it, then
+   `supabase login`.
 
 ---
 
@@ -49,8 +49,8 @@ All on `https://developer.service.hmrc.gov.uk`.
 ---
 
 ## PHASE 2 — Deploy the relay to Supabase (~20 min)
-1. Copy `supabase/functions/hmrc-relay/index.ts` from the download into your repo
-   at the same path (next to `supabase/functions/ai-proxy/`).
+1. The relay is already in the repository at
+   `supabase/functions/hmrc-relay/index.ts`.
 2. Open the file and check `ALLOWED_ORIGINS` lists your real app origins.
 3. Set the secrets (typed in your terminal, stored encrypted by Supabase):
    ```

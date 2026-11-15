@@ -15,7 +15,6 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.57.4",
     "dexie": "^4.4.3",
     "lucide-react": "^0.344.0",
     "papaparse": "^5.5.3",
